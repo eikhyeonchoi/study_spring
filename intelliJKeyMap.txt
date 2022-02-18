@@ -1,0 +1,3 @@
+ctrl + alt + v = 알아서 변수선언해줌
+alt + insert = getter/setter 알아서 만들어줌
+shift + f6 = 변수 이름 한번에 바꿔줌

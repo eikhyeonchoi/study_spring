@@ -1,0 +1,51 @@
+:::annotation 정리:::
+
+ㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡ
+컴포넌트 스캔과 자동 의존관계 설정
+
+@Controller - Controller, class 에서 사용
+@Service - Service, class 에서 사용
+@Repository - Repository, class 에서 사용
+: 스프링컨테이너에 객체를 만들어 넣는다
+: 컴포넌트 스캔 방법임 -> 사실 다 @Component임 scope은 패키지임 메인패키지 하위만 스캔
+
+
+@Autowried - Controller, constructor 에서 사용
+: 스프링컨테이너에 있는 객체를 알아서 연결시켜줌 
+: Controller - Service - Repository를 연결시켜주는 역할
+: Controller는 Service가 필요하고 Service는 Repository가 필요함
+: 이 annotation이 Dependancy Injection(=DI) 역할을 하는 듯
+: 당연하겠지만, Spring Bean으로 등록된 객체만 Autowried가 동작한다
+ㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡ
+
+
+ㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡ
+자바 코드로 직접 스프링 빈 등록하기
+
+@Configuration - class에서 사용
+: 스프링에 bean객체를 직접 넣고 싶을 때 사용
+: @Bean과 같이 사용한다
+
+
+@Bean - 메서드에 사용
+: 스프링컨테이너에 객체를 직접 넣고 싶을 때 사용한다
+: @Configuration과 같이 사용한다
+ㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡ
+
+
+@GetMapping
+@PostMapping
+@PutMapping
+@DeleteMapping
+@RequestMapping
+: http 메소드 매핑
+
+
+@RequestParam
+: 요청파라미터 받기
+
+
+@ResponseBody - 메서드에 사용
+@RestController - 클래스에 사용
+: class에 붙이면 클래스 전체가 전체가 api화(?)된다
+: viewResolver 대신 HttpMessageConverter를 통해 문자면 그냥 문자를 반환함, 객체라면 json으로 반환함

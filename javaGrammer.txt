@@ -1,0 +1,9 @@
+:::살펴봐야할 자바 문법들:::
+
+
+private HashMap<Long, String> store = new HashMap<>();
+store.values().stream().filter(member -> member.getName().equals(name)).findAny();
+: .values() -> collection return
+: .stream() -> stream return
+: .filter() -> stream return
+: .findAny() -> Optionnal return

@@ -1,0 +1,20 @@
+:::start spring:::
+
+
+1. start spring project
+    https://start.spring.io/
+
+2. maven vs gradle
+    npm 같이 라이브러리 관리 툴
+    요즘엔 gradle이 주로 쓰임
+
+3. metadata
+    group - Java의 패키지 이름 규칙을 따라야 함 즉 제어하는 도메인 이름의 반대로 시작
+    artifact - 버전 없는 jar파일의 이름, 소문자로만
+
+4. dependancies
+    spring web
+    thymeleaf
+    ...
+
+5. downlaod

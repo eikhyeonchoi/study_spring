@@ -1,0 +1,106 @@
+자바 - 객체 지향
+spring은 객체 지향 언어가 가진 강력한 특징을 살려냄
+
+좋은 객체 지향
+다형성 - 역할(interface)과 구현(class, object)
+    클라이언트를 변경하지 않고도 서버의 구현 기능을 유연하게 변경할 수 있다
+    사람(클라이언트) -> 자동차 역할 -> K3, AVANTE, TESLA (자동차역할 구현체)
+    자동차가 바뀐다고 해서 사람이 운전을 못하는 것은 아니다
+    어떻게? = 모든 자동차가 자동차 역할의 따라 설계되고 만들어졌기 때문
+
+5가지 원칙(SOLID)
+SRP: 단일 책임 원칙
+    한 클래스는 하나의 책임
+    중요한 기준은 변경, 변경이 있을 때 파급효과가 적으면 잘 따른 것
+
+OCP: 개방 폐쇄 원칙
+    확장에는 열려있으나 변경에는 닫혀있다 -> 다형성
+
+LSP: 리스코프 치환 원칙
+    다형성에서 하위 클래스는 인터페이스 규약을 다 지켜야함
+    컴파일에 성공하는 것을 넘어서는 말
+
+ISP: 인터페이스 분리 원칙
+    특정 클라이언트를 위한 인터페이스가 여러 개가 범용 인터페이스 하나보다 낫다
+    인터페이스도 적당한 크기로 분리하는게 맞다
+    자동차 인터페이스 -> 운전 인터페이스, 정비 인터페이스로 분리
+
+DIP: 의존관계 역전 원칙
+    추상화에 의존해야지, 구체화에 의존하면 안됨
+    구현 클래스에 의존하지 말고, 인터페이스에 의존할 것
+    =역할에 의존하게 해야 한다는 것과 같다
+
+다형성만으로는 OCP, DIP를 지킬 수 없다
+public class MemberService {
+    private MemberRepository m = new MemoryMemberRepository(); // 기존
+    private MemberRepository m = new JdbcMemberRepository();   // 수정
+    // OCP 위반
+    // 클라이언트(service)를 직접 수정했다
+    // DIP 위반
+    // 인터페이스(MemberRepository)에도 의존하지만 구현(Memory,Jdbc)에도 의존하고 있다
+}
+
+=> 스프링은 다음 기술로 다형성 + OCP, DIP를 가능하게 지원
+    DI(Dependancy Injection): 의존관계, 의존성 
+    클라이언트 코드의 변경 없이 기능 확장
+
+모든 설계에 역할과 구현을 분리해야함
+모든 설계에 인터페이스를 부여하자
+ 
+ㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡ
+
+::: DI ::: 
+스프링컨테이너가 DIP, OCP를 지킬 수 있도록 DI를 해준다
+예를들면
+public class MemberServiceImpl {
+    // 스프링 도입 전
+    private final MemberRepository m = new MemoryMemberRepository();
+    private final MemberRepository m = new JdbcMemberRepository();
+    : 이 코드는 다형성을 활용하기는 했다 하지만 DIP, OCP를 지키지 못했음
+    : DIP 위반 - 역할(MemberRepository)에 의존했지만 구현체(new MemoryMemberRepository())에도 의존했다
+    :            만약 MemoryMemberRepository가 아니라 다른 repository로 바꾸려면 코드를 직접 수정해야한다
+    : OCP 위반 - 다른 repository로 바꾸기 위해 클라이언트(MemberServiceImpl)를 직접 수정했기 때문에 변경금지를 위반함
+
+
+    // 스프링 도입 후
+    private final MemberRepository m;
+    public MemberServiceImpl(MemberRepository m) {
+        this.m = m;
+    }
+    : 인터페이스에만 의존했기 때문에 DIP를 잘 지켰고
+    : 다른 repository로 바꿀때 MemberServiceImpl를 수정하지 않아도 되기 때문에 OCP를 잘 지킨 코드
+}
+
+스프링에서는 스프링컨테이너가 repository를 알아서 주입(DI)해주고 MemberServiceImpl를 생성해준다
+예시 코드
+public class AppConfig {
+    public MemberService mebmerService() {
+        return new MemberServiceImpl(new MemoryMemberRepository());
+    } 
+    // 이런식으로 의존관계를 설정해준다
+}
+
+=> 사용영역(ServiceImpl)은 전혀 건들지 않고 구성영역(AppConfig)만 고쳐서 수정(교체및 확장)할 수 있다
+
+
+
+::: IoC :::
+AppConfig가 등장한 후 구현 객체는 자신의 로직을 실행하는 역할만 담당함(~~~Impl)
+어떤 repository를 넣을지 모름 -> 제어권이 AppConfig에 있다
+심지어 ~~Impl 조차도 AppConfig가 생성한다
+이렇듯 프로그램의 제어 흐름을 직접 제어하는 것이 아니라 외부에서 관리하는 것을 제어의 역전(IoC)라고 함
+
+ㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡ
+
+ApplicationContext를 스프링 컨텍스트라고 함
+원랜 AppConfig를 직접 만들어 DI를 직접해주었음
+@Configuration이 붙은 AppConfig를 설정 정보로 사용
+@Bean이라 적힌 메서드를 모두 호출해 반환된 객체를 스프링컨테이너에 등록 = 스프링 빈이라고 칭함
+ApplicationContext ac = new AnnotationConfigApplicationContext(AppConfig.class);
+ac.getBean("memberService", MemberService.class);
+이런식으로 getBean("메서드명", Class)를 사용해 스프링빈 객체를 얻어 사용함
+
+장점?
+
+
+

@@ -4,3 +4,5 @@ shift + f6 = 변수 이름 한번에 바꿔줌
 ctrl + alt + l = 코드정리
 ctrl + alt + m = extract
 ctrl + alt + n = inline
+ctrl + shift + enter = ;자동완성
+f2 = 에러로 이동

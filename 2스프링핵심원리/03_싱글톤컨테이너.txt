@@ -1,0 +1,30 @@
+싱글톤 컨테이너
+: 순수한 DI 컨테이너 AppConfig는 요청할 때 마다 객체를 생성함
+: 메모리 낭비가 심함 -> 딱 1개만 생성하면 효율적임(싱글톤)
+: 싱글톤에는 여러 문제점이 있지만 스프링 컨테이너는 싱글톤 문제를 해결하면서 
+: 빈 객체를 1개만 생성해서 관리한다
+: 스프링컨테이너는 싱글톤 컨테이너 역할을 한다 = 싱글톤 레지스트리
+
+싱글톤 방식의 주의점
+: 상태를 유지하게 설게하면 안됨
+: 무상태(stateless)로 설계해야한다
+: 의존적인 필드X, 값을 변경할 수 있는 필드X, 읽기만 가능해야함
+: 인스턴스 필드는 사용하지 말자
+
+@Configuration & 싱글톤
+@Bean 어노테이션이 붙은 빈객체들은 딱 한번만 호출된다 -> 스프링은 싱글톤을 보장한다
+@Configuration 어노테이션에 비밀이 있음
+AppConfig.getClass() -> class hello.core.AppConfig$$EnhancerBySpringCGLIB$$4ab6406e
+: 스프링이 CGLIB라는 바이트코드 조작 라이브러리를 사용해 AppConfig클래스를 상속받아 
+: 다른 클래스를 만들어 그 클래스를 스프링빈으로 등록한 것
+: AppConfig: 부모 // AppConfig@CGLIB: 자식
+: @Bean이 붙은 메서드마다 이미 스프링빈이 존재하면 존재하는 빈을 리턴하고
+: 없다면 새로 생성해서(부모AppConfig에 있는 진짜 함수 호출)반환하는 것
+: @Configuration 어노테이션을 제거하면 싱글톤을 보장하지 않는다(주입되는 객체가 싱글톤이 안됨)
+public MemberService memberService() {
+    return new MemberServiceImpl(memberRepository());
+    // memberRepository가 싱글톤이 되지 않음 
+}
+
+이처럼 @Configuration, @Bean을 활용해 직접 스프링빈을 등록할 수 있지만
+규모가 커지면 누락이 발생하거나 귀찮아질 것...

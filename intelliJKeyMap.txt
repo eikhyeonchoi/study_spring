@@ -7,3 +7,5 @@ ctrl + alt + n = inline
 ctrl + shift + enter = ;자동완성
 f2 = 에러로 이동
 ctrl + shift + t = 테스트케이스 생성
+
+lombok 사용시 settings -> annotation process check!

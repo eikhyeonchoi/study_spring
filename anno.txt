@@ -99,6 +99,63 @@ JPA
 
 @Id - domain 인스턴스 필드에 설정
 : PK 설정
+: 기본 키를 매핑하려면
+: @GeneratedValue와 같이 사용해주면 된다
+: 언에 따라 위의 세 가지 전략을 자동으로 지정한다.
+
 
 @Column(name = "column name") - domain 인스턴스 필드에 설정
 : column 매칭
+
+
+@Talbe(name = "table name") - 클래스에 사용
+: 테이블 이름 지정
+
+= "address2", column = @Column(name = "a_address2"))
+: @Embedded Address addre
+@ManyToMany
+@OneToMany
+@ManyToOne - LAZY 해야함
+@OneToOne -LAZY 해야함
+: 엔티티 관계 설정
+: cascade 옵션도 있으니 확인
+
+
+@JoinColumn(name = "컬럼명")
+: FK 매칭
+: 주로 @ManyToOne과 같이 쓰임
+
+
+@Embeddable - 클래스에 사용
+@Embedded - 필드에 사용
+@AttributeOverride - 컬럼이름이 겹쳤을때 사용
+: 일일히 컬럼을 나열하는게 아닌
+: 공통적인 필드를 하나의 객체로 관리할 수 있게끔 해주는 문법
+: String zipcode, address1, address2 
+: 이렇게 필드 3개를 생성하느니
+: @Embeddable class Address를 만들어서 사용하는게 좋음
+: 다른곳에서 Address를 사용할땐
+: @Embedded Address address 이렇게 사용
+:
+: 만약 2개 써서 컬럼이름 겹치면?
+: @AttributeOverride(name= "zipcode", column = @Column(name = "a_zipcode"))
+: @AttributeOverride(name= "address1", column = @Column(name = "a_address1"))
+: @AttributeOverride(namess2 이렇게 사용
+
+
+@Enumerated(EnumType.STRING)
+: enum 타입을 사용할 때...
+
+
+@PersistenceContext
+EntityManager em;
+: jpa의 entity manager를 주입받을 수 있다
+em.persist(Object) - insert
+em.find(Class, id) - 단건조회PK
+em.createQuery(query, Class) - 쿼리
+em.merge(Object) - update
+
+
+@Transactional
+: 읽기일땐 readOnly = true
+: @Transactional은 클래스나 메서드에 붙여줄 경우, 해당 범위 내 메서드가 트랜잭션이 되도록 보장해줌

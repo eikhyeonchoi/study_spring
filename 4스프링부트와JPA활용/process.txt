@@ -1,0 +1,87 @@
+
+1. 설정(start.spring.io)
+gradle
+spring web
+lombok
+h2(선택)
+data jpa
+thymeleaf(선택)
+validation
+
+p6spy
+devtools
+
+
+
+2. 엔티티 설계 원칙
+@ManyToMany 사용하지 말 것
+ㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡ
+case 1.
+일대다 
+ex) 회원(일)/주문(다) 테이블
+: 회원은 여러 주문을 할 수 있고, 주문은 하나의 회원에만 속함
+
+회원(일) 테이블
+@OneToMany(mappedBy = "member")
+private List<Order> orders = new ArrayList<>();
+
+주문(다) 테이블
+@ManyToOne
+@JoinColumn(name = "member_id");
+private Member member;
+
+-> 회원은 주문을 여러 번 할 수 있으니 List
+-> 한 주문은 한 회원에게만 속하니 단일 객체
+-> 다대일도 마찬가지임
+-> 딩연히 "다" 쪽에 FK가 들어가야함
+ㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡ
+case 2.
+일대일
+ex) 주문(일)/배달(일) 테이블
+: 한 주문은 한 배달에 속함, 반대도 마찬가지
+: 단 FK가 어디에 속할지는 정해야함 -> 주문에 속하도록 설계
+
+주문(일) 테이블
+@OneToOne
+@JoinColumn(name = "delivery_id")
+private Delivery delivery;
+
+배달(일) 테이블
+@OneToOne(mappedBy = "delivery")
+private Order order;
+
+-> 공식?
+-> FK가 있는 테이블엔("다" 쪽 또는 FK설계한 테이블)
+-> @JoinColumn이 들어가야함
+-> FK 가 없는 테이블엔("일" 쪽 또는 FK 참조 테이블)
+-> @ManyToOne, @OneToOne 속성으로 mappedBy를 넣어 참조 값을 지정해줘야함
+ㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡ
+case 3.
+한 테이블내에서 계층 구조(일대다)
+ex) 카테고리 계층구조
+: Category 테이블 내에서 계층구조로 설계했을 때
+
+@ManyToOne
+@JoinColumn(name = "parent_id")
+private Category parent;
+
+@OneToMany(mappedBy = "parent")
+private List<Category> child = new ArrayList<>();
+
+: 하나의 카테고리에는 여러 자식 카테고리가 있을  수 있음 ex) 옷 -> 아우터, 신발, 팬츠 등
+: 자식 카테고리는 하나의 부모 카테고리를 가짐 ex) 아우터의 부모는 옷, 신발의 부모도 옷
+
+
+
+3. 설계 주의점
+3-1. setter 사용 자제 
+: 비즈니스로직을 그냥 클래스 안에 넣어둬라
+: ex) addStock, removeStock 등
+
+3-2. 지연로딩으로 설정해야함 제발!
+: EAGER XXXXX, LAZY OOOOOO
+: @XToOne 은 기본이 즉시로딩이라 직접 지연로딩으로 설정해야함
+
+3-3. 컬렉션은 필드에서 초기화할 것
+: null 문제에서 안전함
+: hibernate는 엔티티를 영속화 할 때, 컬랙션을 감싸서 하이버네이트가 제공하는 내장 컬렉션으로 변경함

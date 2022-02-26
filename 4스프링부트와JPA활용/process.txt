@@ -77,6 +77,8 @@ private List<Category> child = new ArrayList<>();
 3-1. setter 사용 자제 
 : 비즈니스로직을 그냥 클래스 안에 넣어둬라
 : ex) addStock, removeStock 등
+: + 객체를 만들거나 바꿀 떄에도 
+: createXxx, changeXxx 이런식으로 사용하는 것이 좋다
 
 3-2. 지연로딩으로 설정해야함 제발!
 : EAGER XXXXX, LAZY OOOOOO
@@ -85,3 +87,66 @@ private List<Category> child = new ArrayList<>();
 3-3. 컬렉션은 필드에서 초기화할 것
 : null 문제에서 안전함
 : hibernate는 엔티티를 영속화 할 때, 컬랙션을 감싸서 하이버네이트가 제공하는 내장 컬렉션으로 변경함
+
+3-4. cascade
+: @XToX에는 cascade옵션을 붙일 수 있다
+: ex) Order - Delivery 일대일 매칭인데
+: 원래는 order가 insert되고 delivery를 따로 insert를 해주는건데
+: cascade를 사용하면 order가 insert될 때 delivery도 자동으로 insert를 해줌
+: @OneToOne(mappedBy = "order", cascade = CascadeType.ALL)  
+: private Devlivery delivery; // Order Class
+: cascade는 이처럼 Delivery는 Order만이 관리?하기 때문에 사용한 것
+: 이리 저리 묶여있다면 사용하면 안되는 것
+
+3-5. Update시 ?
+: 병합은 사용하지말고 변경감지를 사용해서 영속성 엔티티로 로직을 처리하자
+: 아래 "변경 감지와 병합" 내용 확인
+
+3-6. 컨트롤러에서 어설프게 엔티티를 생성하지 마세요.
+
+3-7. 컨트롤러에서는 서비스쪽으로 식별자만 넘기고 서비스에서 jpa 영속성 엔티티를 얻어서 로직을 작성하는 것이 좋다
+
+
+
+★★★★★★★★★★★★★★★★★★ 중 요 ★★★★★★★★★★★★★★★★★★
+★★★★★★★★★★★★★★★★★★ 중 요 ★★★★★★★★★★★★★★★★★★
+★★★★★★★★★★★★★★★★★★ 중 요 ★★★★★★★★★★★★★★★★★★
+변경 감지와 병합
+
+준영속 엔티티?
+: 영속성 컨텍스트가 더는 관리하지 않는 엔티티를 말한다.
+: 수정을 시도하려는 객체(Pk가 설정된 객체)
+
+준영석 엔티티는 수정하는 2가지 방법
+1. 변경 감지 기능 사용(dirty check)
+ex)
+@Transactional
+public void updateItem(Long itemId, Book param) {
+    Item findItem = itemRepository.findOne(itemId);
+    findItem.setPrice(param.getPrice());
+    findItem.setName(param.getName());
+    findItem.setStockQuantity(param.getStockQuantity());
+}
+
+2. 병합사용
+@Transactional
+void update(Item itemParam) { //itemParam: 파리미터로 넘어온 준영속 상태의 엔티티
+    Item mergeItem = em.merge(item);
+}
+: itemParam은 새로 만든 준영속 엔티티임
+: merge의 동작방식은 파라미터로 받은 준영속 엔티티 itemParam이 PK가 설정되어 있다면
+: EntityManage에서 Pk를 가지고 em.find(Item.class, pk)해서 영속성 엔티티를 찾는다
+: 그 영속성 엔티티의 값을 준영속 엔티티인 itemParam의 모든 값을 밀어넣는다
+: merge의 동작방식은 아래 예제랑 완전히 동일하게 동작함
+@Transactional
+public Item updateItem(Long itemId, Book param) {
+    Item findItem = itemRepository.findOne(itemId);
+    findItem.setPrice(param.getPrice());
+    findItem.setName(param.getName());
+    findItem.setStockQuantity(param.getStockQuantity());
+    return findItem;
+}
+: 주의점 -> 모든 속성이 파라미터로 받아온 값으로 완전히 변경됨
+:           만약 파라미터의 name값이 null이면 null로 업데이트 되버림 
+:           다 바꿔버리기 떄문에 선택할 수 있는 개념이 아님
+: 결론 -> update를 하는경우 병합사용을 사용하지 말고, 변경 감지를 사용해야한다!

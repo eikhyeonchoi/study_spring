@@ -1,0 +1,81 @@
+영속성 컨텍스트
+엔티티를 영구 저장하는 환경
+엔티티 매니저를 통해 영속성 컨텍스트에 접근(EntityManage.persist(entity))
+
+엔티티 생명주기
+1. 비영속
+: 단지 객체를 생성한 상태임
+: 전혀 관계가 없음
+
+2. 영속
+: Member member = new Member(); // 비영속
+: em.persist(member); // 영속됨 - 영속성 컨텍스트에 넣는것(쿼리 날리는게 아님)
+: 쿼리는 트랜잭션을 하는 시점에 감
+: 1차 캐시에 올라간 상태라고 봐도 됨
+
+3. 준영속, 삭제
+: em.detach(member);
+: em.remove(member);
+: 다시 말하지만 detach, remove 등이 쿼리를 날리는게 아니라
+: 영속성 컨텍스트에서 떼어내거나 삭제하는 작업임
+
+
+
+이점
+1. 엔티티 조회, 1차 캐시
+: @Id: key, Entity: member
+: em.find(Member.class, "member1");
+: JPA는 우선 DB를 보는게 아닌 1차캐시를 "member1"이라는 key로 찾아봄
+: 만약 1차 캐시에 없다면 DB를 보고 난 후 바로 리턴하는게 아닌 1차 캐시에 저장하고 반환함
+: 트랜잭션단위로 동작하기 때문에 큰 이점은 없다
+: 여러명이 공유하는게 아닌 딱 한 트랜잭션내에서만 동작하는 것
+
+2. 영속엔티티의 동일성 보장
+: 컬렉션에서 꺼낸 것처럼 동일하다
+: 단 같은 트랜잭션 내에서임
+: Member member1 = em.find(Member.class, 1L);
+: Member member2 = em.find(Member.class, 1L);
+: member1 == member2; // true
+
+3. 쓰기지연
+: 커밋하는 순간에 insert sql을 보낸다
+: em.persist(member);
+: 일단 엔티티가 1차 캐시에 저장됨
+: + INSERT SQL을 생성해서 "쓰기 지연 SQL 저장소"에 저장함
+:   commit을 하면 "쓰기 지연 SQL 저장소"에서 SQL을 flush함
+
+4. 엔티티 수정(변경 감지 = dirty checking)
+: 컬렉션처럼 동작함, 컬렉션에서 꺼낸다음 수정하고 다시 컬렉션에 넣진 않듯
+: JPA도 마찬가지로 다시 넣는 작업이 없어야 한다, 단!! commit은 해야함
+: Member member = em.find(Member.class, 1L);
+: member.setName("zzzz");
+: tx.commit();
+: 커밋하면 엔티티와 스냅샷을 비교함
+: 1차 캐시 안에는 
+: @Id, Entity, SnapShot 이렇게 있음(SnapShot은 Entity의 처음 상태를 의미)
+: Entity를 변경하면? Entity, SnapShot을 비교하면서
+: 만약 변경점이 있다면 "쓰기 지연 SQL 저장소"에 update문을 추가하고 flush
+
+5. 삭제
+: em.remove(member);
+: 똑같은 메커니즘, commit하면 flush
+
+
+
+플러시란?
+: 영속성 컨텍스트의 변경내용(쓰기지연 SQL저장소)을 DB에 반영
+: flush를 한다고해서 1차 캐시는 사라지지 않음, 저장소내용만 반영
+: em.flush(); - 직접 호출
+: 트랜잭션 커밋 - 자동으로 호출
+: JPQL 실행 - 자동호출
+
+
+
+준영속 상태란?
+: 영속 -> 준영속
+: 영속 상태의 엔티티가 영속성 컨텍스트에서 분리(detached)
+: 영속성 컨텍스트 기능 사용 못함
+: 준영속 상태로 만드는법
+: em.detach(entity); - 특정 엔티티만 준영속 상태로 전환 
+: em.close(); - 영속성 컨텍스트를 종료
+: em.clear(); - 영속성 컨텍스트를 완전히 초기화

@@ -83,6 +83,7 @@ private List<Category> child = new ArrayList<>();
 3-2. 지연로딩으로 설정해야함 제발!
 : EAGER XXXXX, LAZY OOOOOO
 : @XToOne 은 기본이 즉시로딩이라 직접 지연로딩으로 설정해야함
+: (fetch = FetchType.LAZY)
 
 3-3. 컬렉션은 필드에서 초기화할 것
 : null 문제에서 안전함

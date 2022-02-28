@@ -1,0 +1,77 @@
+엔티티 매핑
+1. 객체와 테이블 매핑
+: @Entity가 붙은 클래스는 JPA가 관리, 엔티티라함
+: 기본생성자 필수(파라미터 없는 public protected)
+: final eunm interface inner 클래스 사용 X
+: DB에 저장할 필드엔 final X
+: @Table은 엔티티와 매핑할 테이블 지정
+
+
+
+2. DB 스키마 자동생성
+: hibernate.hbm2ddl.auto
+: create - 기존테이블 삭제 후 다시 생성
+: create-drop - create와 동일, 종료시점에 테이블 drop
+: update - 변경분만 반영(운영DB에 사용X)
+: validate - 엔티티와 테이블이 정상 매핑되었는지만 확인
+: none - 사용하지 않음
+: DDL 생성 기능
+: DDL을 자동 생성할 때만 사용되고 JPA의 실행 로직에는 영향을 주지 않는다
+
+
+
+3. 필드와 컬럼 매핑
+3-1. @Column - 컬럼매핑
+: name - 필드와 매핑할 테이블의 컬럼 이름
+: insertable, updatable - 등록, 변경 가능 여부
+: nullable(DDL) -null 값의 허용 여부를 설정한다. false로 설정하면 DDL 생성 시에 not null 제약조건이 붙는다
+: unique(DDL) - @Table의 uniqueConstraints와 같지만 한 컬럼에 간단히 유니크 제약조건을 걸 때 사용한다, 잘 사용하지 않음(제약조건이 랜덤스트링?임)
+: length(DDL) - 문자 길이 제약조건, String 타입에만 사용한다.
+: columnDefinition(DDL) - 데이터베이스 컬럼 정보를 직접 줄 수 있다 ex) varchar(100) default ‘EMPTY'
+
+3-2. @Temproal - 날짜타입매핑(TemproalType)
+: 날짜 타입(java.util.Date, java.util.Calendar)을 매핑할 때 사용
+: 참고: LocalDate, LocalDateTime을 사용할 때는 생략 가능(최신 하이버네이트 지원) 
+
+3-3. @Enumerated - enum타입매핑
+: 자바 enum 타입을 매핑할 때 사용
+: 주의! ORDINAL 사용X
+: EnumType.ORDINAL: enum 순서를 데이터베이스에 저장
+: EnumType.STRING: enum 이름을 데이터베이스에 저장
+
+3-4. @Lob - BLOB, CLOB 매핑
+: @Lob에는 지정할 수 있는 속성이 없다.
+: 매핑하는 필드 타입이 문자면 CLOB 매핑, 나머지는 BLOB 매핑
+
+3-5. @Transient - 컬럼매핑X
+
+
+
+4. 기본 키 매핑
+: 직접할당 - @Id만 사용
+: 자동생성 - @GeneratedValue
+: 옵션
+: AUTO
+: 방언에 따라 자동 지정, 기본값
+: IDENTITY(MySQL, PostgreSQL, SQL Server, DB2)
+: 기본 키 생성을 데이터베이스에 위임
+: SEQUENCE(오라클, PostgreSQL, DB2, H2) - @SequenceGenerator참고
+: 데이터베이스 시퀀스는 유일한 값을 순서대로 생성하는 특별한 데이터베이스 오브젝트(예: 오라클 시퀀스) 
+: TABLE(모든 DB 사용가능, 성능 떨어짐) - @TableGenerator참고
+: 키 생성 전용 테이블을 하나 만들어서 데이터베이스 시퀀스를 흉내내는 전략
+:
+: 권장하는 식별자 전략
+: Long형 + 대체키 + 키 생성전략 사용
+
+
+IDENTITY전략은 DB에 들어갈 때 PK가 생성되기 때문에
+원래 JPA는 commit 시점에 쿼리가 flush되는데, 이 전략만 특이하게 persist할 때 쿼리가 날라감
+그래야 영속성 컨텍스트에서 관리할 수 있기 때문임
+어차피 한 트랜잭션내에서 수행되기 때문에 크게 문제가 되진 않는다
+
+SEQUENCE전략은 persist할때 시퀀스한테 PK를 얻어옴 
+그 다음 엔티티에 PK를 넣은 후 영속성 컨텍스트에 저장하는 메커니즘임
+@SequenceGenerator의 allocationSize옵션을 50으로 설정해놓으면 매번 DB에 접근하는게 아니라
+50까지 메모리에 두고 채워질때까지는 메모리에서 가져올 수 있고 다 차면 DB에 한번 요청해서
+51~100까지 확보해놓기 때문에 성능을 향상시킬 수 있다
+

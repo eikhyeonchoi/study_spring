@@ -106,24 +106,30 @@ JPA
 
 @Column(name = "column name") - domain 인스턴스 필드에 설정
 : column 매칭
+: nullalbe, unique, length 등 옵션 확인
 
 
-@Talbe(name = "table name") - 클래스에 사용
+@Table(name = "table name") - 클래스에 사용
 : 테이블 이름 지정
 
-= "address2", column = @Column(name = "a_address2"))
-: @Embedded Address addre
+
 @ManyToMany
 @OneToMany
 @ManyToOne - LAZY 해야함
 @OneToOne -LAZY 해야함
 : 엔티티 관계 설정
-: cascade 옵션도 있으니 확인
+: fetch, cascade, mappedBy 옵션확인할 것
 
 
 @JoinColumn(name = "컬럼명")
 : FK 매칭
 : 주로 @ManyToOne과 같이 쓰임
+: 중요!
+: name 옵션은 
+: 대상 테이블의 PK를 적는줄 알았지만 FK이름을 지정하는거임
+: 원래 referencedColumnName를 사용해서 대상 테이블의 FK를 지정하는 것인데
+: 지정하지 않으면 대상엔티티의 PK를 JPA가 알아서 외래키로 걸어줌
+: 즉 이 어노테이션은 "외래키" 컬럼을 만드는 어노테이션이다
 
 
 @Embeddable - 클래스에 사용
@@ -145,6 +151,7 @@ JPA
 
 @Enumerated(EnumType.STRING)
 : enum 타입을 사용할 때...
+: 꼭 EnumType을 String으로 설정해야줘야함
 
 
 @PersistenceContext

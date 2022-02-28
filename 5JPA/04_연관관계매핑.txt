@@ -1,0 +1,151 @@
+객체를 테이블에 맞춰 데이터 중심으로 모델링하면 협력 관계를 만들 수 없음
+객체지향스럽지 않다
+
+ex) 
+조건1. 한 멤버는 하나의 팀의 소속된다
+조건2. 팀은 여러 멤버를 가질 수 있다
+@Entity
+public class Member {
+    @Id @GeneratedValue
+    @Column(name = "member_id")
+    private Long Id;
+    private String name;
+    private Long teamId;
+}
+
+@Entity
+public class Team {
+    @Id @GeneratedValue
+    @Column(name = "team_id")
+    private Long Id;
+    private String name;
+}
+
+// 삽입 로직
+Team team = new Team();
+em.persist(team)
+Member member = new Member();
+em.persist(member);
+: 객체지향스럽지 않다
+: 객체지향스러우려면 em.persist(member)시 team도 삽입되어야한다
+
+// 조회로직
+Member member = em.find(Member.class, 1L);
+Long teamId = member.getTeamId();
+Team team = em.find(Team.class, teamId);
+: 객체지향스럽지 않다
+: 객체지향스러우려면 member.getTeam()이 자연스럽다
+
+ㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡ
+
+객체 지향 모델링
+
+정말 중요한것
+@JoinColumn(name = "")의 name 옵션은 
+대상 테이블의 PK를 적는줄 알았지만 FK이름을 지정하는거임
+원래 referencedColumnName를 사용해서 대상 테이블의 FK를 지정하는 것인데
+지정하지 않으면 대상엔티티의 PK를 JPA가 알아서 외래키로 걸어줌
+
+
+단방향 연관관계 
+ex)
+@Entity
+public class Member {
+    @Id @GeneratedValue
+    @Column(name = "member_id")
+    private Long Id;
+    private String name;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "team_id")
+    private Team team;
+}
+
+@Entity
+public class Team {
+    @Id @GeneratedValue
+    @Column(name = "team_id")
+    private Long Id;
+    private String name;
+}
+: Team team = find(Team.class, 100L);
+: team.getMember(); // 불가능
+: 단방향 연관관계에서는 불가능함
+
+
+
+양방향 연관관계
+ex)
+@Entity
+public class Team {
+    @Id @GeneratedValue
+    @Column(name = "team_id")
+    private Long Id;
+    private String name;
+
+    @OneToMany(mappedBy = "team");
+    private List<Member> members = new ArrayList<>();
+}
+: mappedBy? - 반대편의 매핑되어있는 변수명
+: Team team = find(Team.class, 100L);
+: team.getMember(); // 가능
+:
+: 객체에서의 양방향 관계는 사실 서로다른 단방향 관계 2개를 합친거임
+: 테이블에서의 양방향 관계를 외래 키 하나로 양방향 연관관계를 가질 수 있음
+: 단방향 매핑만으로도 이미 연관관계 매핑은 완료됨
+: 양방향 매핑은 반대방향으로 조회 기능이 추가된 것 뿐
+: 일단 단방향 매핑만 하고 양방향은 필요할 때 추가할 것
+
+
+
+연관 관계의 주인
+양방향 매핑 규칙
+1. 객체의 두 관계중 하나를 주인으로 지정
+2. 연관관계의 주인만이 외래키를 관리(등록, 수정)
+3. 주인이 아닌쪽은 읽기만가능
+4. 주인은 mappedBy 속성을 사용하지 않음
+5. 주인이 아니면 mappedBy속성으로 주인을 지정함
+
+=> ★★★ 외래키가 있는쪽이 주인임
+=> "다" 쪽이 주인, "일" 쪽에 가짜매핑mappedBy를 걸어줌
+
+가장많이 하는 실수
+Team team = new Team();
+em.persist(team);
+Member member = new Member();
+team.getMembers().add(member);
+em.persist(member);
+: 가짜 매핑된 엔티티는 읽기만해야함
+: team -> members는 mappedBy된거라 읽기만 함
+: 고치려면 member.setTeam(team);을 넣어야함
+
+=> team.getMembers().add(member);를 안했을시
+=> 플러시를 하지 않고, em.find(Team.class, team.getId());를 해버리면
+=> 영속성 컨텍스트에서 가져오기 때문에 team.getMembers()는 비어있는 배열이다
+=> 때문에 다 셋팅해주는게 맞다
+=> member.setTeam(team);
+=> team.getMembers().add(member);
+=> jpa문법상에서는 윗줄을 안넣어도 삽입이 잘 됨
+=> 만약 양방향 연관관계를 설정했다면,
+=> ★★★ 항상 양쪽의 값을 설정할 것 !!!
+
+
+
+※ 꿀팁
+1. 연관관계 편의 메서드를 생성할것
+    Member -> setTeam 또는 changeTeam
+    {
+        this.team = team;
+        team.getMembers().add(this);
+    }
+    물론 team.addMember(member); 이렇게해서 할 수도 있는데
+    Team -> addMember
+    {
+        member.setTeam(this);
+        getMembers().add(member);
+    }
+
+2. 양방향 매핑시 무한루프 조심할것
+    toString() (lombok toString조심)
+    JSON생성라이브러리(컨트롤러에서 엔티티를 직접 리턴하지말것)
+    엔티티는 DTO로 변환해서 리턴할 것

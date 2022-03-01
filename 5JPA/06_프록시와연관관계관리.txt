@@ -1,0 +1,170 @@
+프록시
+: em.find() vs em.getReference()
+: em.find(): 데이터베이스를 통해서 실제 엔티티 객체 조회
+: em.getReference(): 데이터베이스 조회를 미루는 가짜(프록시) 엔티티 객체 조회
+: ex)
+: // DB에 쿼리문을 날리지 않음
+: Member member = em.getReference(Member.class, 1L);
+: // 이렇게 직접 사용할 때 쿼리문을 날림
+: member.getName();
+
+프록시 특징
+: 실제 클래스를 상속 받아 만들어짐
+: 실제 클래스와 겉 모양이 같음
+: em.getReference() 호출하면 Member를 상속받은 프록시를 만들어서 리턴하는 것
+: 프록시에는 실제 객체 member의 참조를 보관함
+: 프록시 객체를 호출하면 실객체를 호출함
+
+프록시 초기화 과정
+1. member.getName(); - 프록시 객체를 호출함
+2. 프록시 객체내의 실객체 참조가 없음 
+3. 영속성 컨텍스트에 요청함(실객체를 가져오라고)
+4. 영속성 컨텍스트는 DB를 조회해서 실객체 Entity를 생성함
+5. 프록시내에 있는 실객체 참조에 실객체 Entity를 넣어줌
+6. 그 다음 실객체의 getName()을 호출해주는 것
+
+프록시 특징
+1. 처음 사용시 한 번만 초기화함
+2. 초기화시 프록시 객체가 실제 엔티티로 바뀌는게 아님 그냥 실객체 참조값이 설정되는 것
+3. 타입 체크시 주의해야함 == 비교 대신 instance of 사용
+4. 영속성 컨텍스트에 찾는 엔티티가 이미 있으면 em.getReference()를 호출해도 실제 엔티티 반환
+5. 영속성 컨텍스트는 한 트랜잭션내에서 엔티티의 동일성을 보장해야함
+ex)
+Member refMember = em.getReference(Member.class, 1L);
+Member findMember = em.find(Member.class, 1L);
+refMember는 Proxy고 findMember는 Member일까?
+동일성을 보장해야하기 때문에 둘 다 Proxy이다
+6. 영속성 컨텍스트의 도움을 받을 수 없는 준영속 상태일 때, 프록시를 초기화하면 문제 발생
+(하이버네이트는 org.hibernate.LazyInitializationException 예외를 터트림)
+
+프록시 확인
+PersistenceUnitUtil.isLoaded(Object entity); - 프록시 인스턴스의 초기화 여부 확인
+entity.getClass().getName() 출력 
+org.hibernate.Hibernate.initialize(entity); - 프록시 강제 초기화
+참고: JPA 표준은 강제 초기화 없음 - 강제 호출: member.getName()
+
+
+
+즉시로딩과 지연로딩
+... in MemberClass
+@ManyToOne(fetch = 옵션)
+FetchType.EAGER - 즉시(실 Entity 반환)
+FetchType.LAZY - 지연(프록시 객체 반환)
+
+@ManyToOne(fetch = FetchType.LAZY)
+private Team team; // team을 지연로딩으로 설정
+
+Member memer = em.find(Member.class, 1L);
+member.getTeam(); // Proxy임
+member.getTeam().getName(); // 이런식으로 실제써야지만 프록시가 초기화됨
+
+주의
+1. 가급적 지연로딩만 사용
+2. 즉시 로딩은 JPQL에서  N+1 문제를 일으킴
+-> EAGER로 지정된 Entity를 가져와야해서 Member 10명을 조회하면 10번 TEAM테이블의 쿼리가 나감 select * from team where team_id = n
+-> fetch join 등으로 한번의 쿼리로 데이터를 가져올 수 있음
+3. @XToOne은 기본이 즉시로딩이라 따로 지연로딩으로 설정할 것
+4. @XToMany는 기본이 지연로딩
+
+
+
+영속성 전이(cascade) / 고아객체 - 로딩과 관계없다
+: 특정 엔티티를 영속 상태로 만들 때 연관된 엔티티도 함께 영속상태로 만들도 싶을 때
+: 부모 저장시 자식도 같이 저장하고 싶을 때
+: 다대일 관계에서 "일" 쪽에 걸어야함 + 소유자가 하나일경우 child가 parent만 관계가 있을 때
+
+ex) 
+class Parent {
+    @OneToMany
+    List<Child> childList = new ArrayList<>();
+}
+
+class Child {
+    @ManyToOne(fetch = FetchType.LAZY)
+    private Parent parent;
+}
+
+Main class {
+    Child c1 = new Child();
+    Child c2 = new Child();
+    Parent parent = new Parent();
+    parent.addChild(c1,c2);
+    em.persist(c1);
+    em.persist(c2);
+    em.persist(parent);
+    // persist를 3번해야함
+}
+: Parent -> childList에 (cascade = CascadeType.ALL)을 주면 
+: em.persist(parent); // 한번만 수행해도 child까지 다 들어감
+
+CASCADE의 종류
+: ALL - 모두
+: PERSIST - 영속
+: REMOVE - 삭제
+
+고아 객체
+: 부모 엔티티와 연관관계가 끊어진 자식 엔티티를 자동으로 삭제
+: Parent parent = em.find(Parent.class, id);
+: parent.getChildList().remove(0);
+: (orpganRemoval = true)
+: + 부모를 제거하면 자식도 함께 제거된다
+:   마치 cascade remove처럼 동작함
+: orphanRemovel 옵션사용
+
+생명주기
+: CascadeType.ALL + orphanRemovel=true 
+: 두 옵션을 모두 활성화 하면 부모 엔티티를 통해서 자식의 생명주기를 관리할 수 있음
+
+
+
+값 타입
+최상위 - 엔티티, 값 타입
+엔티티 타입
+: @Entity로 정의하는 객체
+: 데이터가 변해도 식별자로 지속해서 추적 가능
+값 타입 
+: primitive type, 래퍼클래스, String
+: 임베디드 타입(embeded type, 복합 값 타입)
+: 컬렉션 값 타입(collection value type)
+: 불변해야함
+
+기본 값 타입
+: String name, int age 등
+: 생명주기를 엔티티의 의존
+: 값 타입은 공유하면 안됨
+: 자바의 기본 타입은 절대 공유하지 않음
+: - 항상 값을 복사함
+: - 래퍼클래스나 String 클래스는 공유 가능한 객체이지만 변경 X
+
+임베디드 타입(복합 값 타입)
+: 값 타입임
+: 그냥 기본 값 타입을 묶는 것
+: @Embeddable: 값 타입을 정의하는 곳에 표시
+: @Embedded: 값 타입을 사용하는 곳에 표시
+: 기본생성자 필수
+: 객체타입이라 공유를 조심해야함 -> 참조 값을 직접 대입하는 것을 막을 방법이 없다
+
+불변 객체
+: 생성 시점 이후 절대 값을 변경할 수 없는 객체
+: 값 타입은 불변 객체(immutable object)로 설계해야함
+: 빌더패턴을 활용할 것
+ex)
+Member mebmer = em.find(Member.class, 1L);
+member.setAddress(new Adderss("", "", ""));
+-> primitive가 아닌이상
+-> 이렇게 통으로 바꿔야함
+
+값 타입의 비교
+: primitive type의 경우는, 동일성(==) 비교
+: embeded type의 경우는, 동등성(.equals) 비교(equals, hashcode 오버라이딩 해줄 것)
+
+
+
+값 타입 컬렉션
+: 값 타입을 하나 이상 저장할 때 사용
+: @ElementCollection, @CollectionTable 사용
+: 생명주기를 엔티티의 의존
+: CascadeType.ALL + orphanRemovel=true 와 같음
+: 지연로딩으로 동작함
+: 값 타입 컬렉션에 변경 사항이 발생하면, 주인 엔티티와 연관된 모든 데이터를 삭제하고, 값 타입 컬렉션에 있는 현재 값을 모두 다시 저장한다. 
+: 쓰지마라 ㅅㄱ

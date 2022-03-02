@@ -98,3 +98,17 @@ member.setAddress(new Adderss("", "", ""));
 -> primitive type이 아닌 이상
 -> 이렇게 통으로 바꿔야함
 -> equals, hashcode 오버라이딩 주의할 것!
+
+
+
+묵시적 조인을 쓰면 망함
+★★★ 명시적 조인을 사용할 것
+비추천 = select t.members from Team t
+추천 = select m from Team t join t.members m 
+비추천 = select m.team from Member m
+추천 - select t from Member m join m.team t
+해결책은 페치조인
+
+
+
+벌크연산 사용후 영속성 컨텍스트를 초기화할 것

@@ -1,0 +1,263 @@
+JPQL
+: 검색을 할 때도 테이블이 아닌 엔티티 객체를 대상으로 검색
+: JPA는 SQL을 추상화한 JPQL이라는 객체 지향 쿼리 언어 제공
+: JPQL은 엔티티 객체를 대상으로 쿼리, SQL은 데이터베이스 테이블을 대상으로 쿼리
+: SQL을 추상화해서 특정 데이터베이스 SQL에 의존X 
+: 객체 지향 SQL
+: 참고 - commit하거나, JPQL 쿼리사용 시점에 DB에 반영된다 
+
+
+
+기본 문법과 기능
+: SQL 기본 문법과 동일함
+: ex) select m from Member m where m.age > 18
+: 엔티티와 속성은 대소문자 구분O (Member, age)
+: JPQL 키워드는 대소문자 구분X (SELECT, FROM, where)
+: 엔티티 이름 사용, 테이블 이름이 아님(Member)
+: 별칭은 필수(m) (as는 생략가능)
+
+
+
+쿼리
+결과 타입이 명확한 경우
+TypeQuery<Member> = em.createQuery("select m from Member m", Member.class);
+명확하지 않다면
+Query query = em.createQuery("select m.username, m,age from Member m");
+
+
+
+결과 조회
+query.getResultList(): 결과가 하나 이상일 때
+: 결과가 없으면 빈 리스트 반환
+query.getSingleResult(): 결과가 정확히 하나
+: 결과가 없으면 javax.persistence.NoResultException 
+: 둘 이상이면 javax.persistence.NonUniqueResultException
+
+
+
+파라미터 바인딩
+이름 기준(:)
+em.createQuery("select m from Member m where m.age=:age").setParameter("age", 10);
+위치 기준(?)
+em.createQuery("select m from Member m where m.age=?1").setParameter(1, 10);
+
+
+
+프로젝션
+: select절에 조회할 대상을 지정하는 것
+: 대상 - 엔티티, 임베디드 타입, 스칼라타입(primitive type)
+: select m - 엔티티
+: 결과가 몇개든 결과로 나온 모든 엔티티는 영속성 컨텍스트에서 관리된다
+: select m.team - 엔티티(team이 엔티티)
+: ★★★ 하지만 이렇게 쓰진 말고 조인해서 쓸 것(묵시적 조인 때문)
+: select m.address - 임베디드타입(address 임베디드 타입)
+: select m.age - 스칼라타입(age는 member의 필드)
+: DISTINCT로 중복제거
+
+프로젝션 - 여러 값 조회
+: SELECT m.username, m.age FROM Member m
+1. Query 타입으로 조회
+2. Object[] 타입으로 조회
+3. new 명령어로 조회 - recommended
+: SELECT new jpabook.jpql.UserDTO(m.username, m.age) FROM Member m
+: 패키지 명을 포함한 전체 클래스 명 입력
+: 순서와 타입이 일치하는 생성자 필요
+
+
+
+페이징 API
+: JPA는 페이징을 다음 두 API로 초기화
+: setFirstResult(int startPosition) - 조회 시작 위치 0부터(offset)
+: setMaxResults(int maxResult) - 조회할 데이터수(limit)
+
+
+
+조인
+SELECT m FROM Member m [INNER] JOIN m.team t
+SELECT m FROM Member m LEFT [OUTER] JOIN m.team t 
+
+조인 - ON절을 활용한 조인(JPA 2.1부터 지원)
+SELECT m, t FROM Member m LEFT JOIN m.team t on t.name = 'A' 
+
+서브 쿼리
+select m from Member m where m.age > (select avg(m2.age) from Member m2) 
+select m from Member m where (select count(o) from Order o where m = o.member) > 0 
+: EXISTS, ALL, ANY, SOME, IN 모두 가능
+: JPA는 WHERE, HAVING 절에서만 서브 쿼리 사용 가능
+: SELECT 절도 가능(하이버네이트에서 지원) 
+: FROM 절의 서브 쿼리는 현재 JPQL에서 불가능
+
+JPQL 타입 표현
+문자: 'she'
+숫자: 10L(long), 10D(double), 10F(float)
+Boolean: TRUE, FALSE
+ENUM : jpabook.MemberType.Admin(패키지명포함해서 사용)
+엔티티타입: TYPE(m) = Member (상속 관계에서 사용)
+종합ex) select 'hello', 10D, true, from Member m where m.type = example.package.Type.NAME
+엔티티타입ex) select i from Item i where type(i) = Book
+
+기타 문법
+AND, OR, NOT, =, >, >=, <, <=, <>, BETWEEN, LIKE, IS NULL
+
+
+
+조건식
+case 가능
+
+COALESCE: 하나씩 조회해서 null이 아니면 반환
+select coalesce(m.username,'이름 없는 회원') from Member m
+
+NULLIF: 두 값이 같으면 null 반환, 다르면 첫번째 값 반환
+select NULLIF(m.username, '관리자') from Member m
+
+
+
+기본함수
+CONCAT, SUBSTRING, TRIM, LOWER, UPPER, LENGTH, LOCATE, ABS, SQRT, MOD, 
+SIZE - 양방향 관계 일때 "일"쪽 컬렉션의 길이, INDEX(JPA 용도)
+
+사용자 정의 함수 호출
+: 하이버네이트는 사용전 방언에 추가해야 한다. 
+: 사용하는 DB 방언을 상속받고, 사용자 정의 함수를 등록한다.
+: 등록되지 않은 함수를 사용할 경우 - select function('group_concat', i.name) from Item i
+ex) 
+public class Name extends H2Dialect {
+    public Name() {
+        registerFunction("group_concat", new StandardSQLFunction("group_concat", StandardBasicTypes,STRING));
+    }
+}
++ 이것도 해줘야함
+persistence.xml
+<property name="hibernate.dialect" value="org.hibernate.dialect.Name"/>
+
+
+
+경로표현식
+.(점)을 찍어 객체 그래프를 탐색하는 것
+
+상태필드
+: 단순히 값을 저장하기 위한 필드(ex. m.username)
+: 경로 탐색의 끝, 탐색X
+
+연관필드
+1. 단일 값 연관 필드(@XToOne ex. m.team)
+: 대상이 엔티티
+: ★★★ 묵시적 내부 조인 발생, 탐색O
+: 매핑관계 주인쪽에서만 묵시내부조인 발생하는 듯
+: select m.team from Member m << 묵시적 내부조인, 탐색 O
+
+2. 컬렉션 값 연관 필드(@XToMany ex. t.members)
+: 대상이 컬렉션
+: 묵시적 내부 조인 발생, 탐색X
+: from 절에서 명시적 조인을 통해 별칭을 얻으면 별칭을 통해 탐색가능
+: select t.members from Team t << 묵시적 내부조인, 탐색 X
+
+-> ★★★ 묵시적 내부조인은 절대 쓰지 말자
+-> ★★★ 명시적 조인을 사용하자
+
+
+
+★★★ 페치 조인
+: SQL 조인 종류가 아님
+: JPQL에서 성능 최적화를 위해 제공하는 기능
+: 연관된 엔티티나 컬렉션을 SQL 한 번에 함께 조회하는 기능
+: select m from Member m;
+: m.getTeam().getName();
+: 이렇게 한다면 즉시로딩, 지연로딩 모두 쿼리가 많이 날아감 
+: fetch조인으로 해결해야함
+: 페치조인예시.txt 확인
+
+
+페치조인과 DISTINCT
+: SQL의 DISTINCT는 중복된 결과를 제거하는 명령
+1. SQL에 DISTINCT를 추가
+2. 애플리케이션에서 엔티티 중복 제거
+ex)
+select distinct t from Team t join fetch t.members where t.name = ‘팀A’
+DISTINCT가 추가로 애플리케이션에서 중복 제거시도
+같은 식별자를 가진 Team 엔티티 제거
+
+
+일반조인 vs 페치조인
+: JPQL은 결과를 반환할 때 연관관계 고려X 
+: 단지 SELECT 절에 지정한 엔티티만 조회할 뿐
+: 페치 조인을 사용할 때만 연관된 엔티티도 함께 조회(즉시 로딩)
+: 페치 조인은 객체 그래프를 SQL 한번에 조회하는 개념
+
+
+페치조인의 특징, 한계
+: 페치 조인 "대상"에는 별칭을 줄 수 없다(하이버네이트는 가능, 가급적 사용X)
+: 둘 이상의 컬렉션은 페치 조인 할 수 없다
+: 컬렉션을 페치 조인하면 페이징 API(setFirstResult, setMaxResults)를 사용할 수 없다
+: - 일대일, 다대일 같은 단일 값 연관 필드들은 페치 조인해도 페이징 가능
+: - 하이버네이트는 경고 로그를 남기고 메모리에서 페이징(매우 위험)
+: - 컬렉션의 대해 페이징을 사용해야한다면 fetch조인을 쓰지말고 @BatchSize를 써야함
+: - 보통 @BatchSize는 글로벌로 등록한다
+ex)
+em.createQuery("select t from Team").setFirstResult().setMaxResults().getResultList();
+class Team {
+    @oneToMany(mappedBy = "team")
+    @BatchSize()
+    private List<Member> members = new ArrayList<>();
+}
+
+
+페치조인 정리
+: 모든 것을 페치 조인으로 해결할 수 는 없음
+: 페치 조인은 객체 그래프를 유지할 때 사용하면 효과적
+: 여러 테이블을 조인해서 엔티티가 가진 모양이 아닌 전혀 다른 결과를 내야 하면, 페치 조인 보다는 일반 조인을 사용하고 필요한 데이터들만 조회해서 DTO로 반환하는 것이 효과적
+
+
+
+다형성 쿼리
+TYPE
+: 조회 대상을 특정 자식으로 한정
+: select i from Item i where type(i) IN (Book, Movie)  
+TREAT
+select i from Item i where treat(i as Book).auther = ‘kim’ 
+
+
+
+엔티티 직접 사용
+: JPQL에서 엔티티를 직접 사용하면 SQL에서 해당 엔티티의 기본 키 값을 사용
+: select count(m.id) from Member m //엔티티의 아이디를 사용
+: select count(m) from Member m //엔티티를 직접 사용 
+: (JPQL 둘다 같은 다음 SQL 실행)
+: select count(m.id) as cnt from Member m
+ex)
+createQuery("select m from Member m where m.team :team")
+.setParameter("team", team(객체)); // 가능
+
+createQuery("select m from Member m where m.team.id :teamId")
+.setParameter("teamId", team.getId()); // 가능
+-> 두 경우 모두 SQL문이 같다
+
+createQuery("select m from Member m where m.team.name :teamName")
+.setParameter("teamName", team.getName()); // 가능
+-> 이 경우에는 묵시적 내부조인이 일어난다
+-> member에는 team -> name이 없기 때문임
+
+
+
+Named쿼리(어노테이션)
+: 미리 정의해서 이름을 부여해두고 사용하는 JPQL
+: 애플리케이션 로딩 시점에 쿼리를 검증
+@Entity
+@NamedQuery(
+    name = "Member.findByUsername",
+    query="select m from Member m where m.username = :username")
+public class Member {}
+List<Member> resultList = em.createNamedQuery("Member.findByUsername", Member.class).setParameter("username", "회원1").getResultList();
+
+
+
+벌크연산
+: 쿼리 한 번으로 여러 테이블 로우 변경(엔티티)
+: executeUpdate()의 결과는 영향받은 엔티티 수 반환
+: UPDATE, DELETE 지원
+: INSERT(insert into .. select, 하이버네이트 지원)
+
+주의
+: 벌크 연산은 영속성 컨텍스트를 무시하고 데이터베이스에 직접 쿼리
+: 벌크 연산을 먼저 실행
+: ★★★ 벌크 연산 수행 후 영속성 컨텍스트 초기화

@@ -11,6 +11,7 @@ ctrl + alt + n = inline
 ctrl + alt + p = parameter 화 해준다
 ctrl + alt + v = 알아서 변수선언해줌
 ctrl + alt + f7 = usages found
+ctrl + alt + T = try catch
 
 alt + shift + p = 패키지생성(custom)
 alt + shift + n = 파일생성(custom)

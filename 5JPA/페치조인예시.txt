@@ -1,0 +1,33 @@
+// EAGER 설정 시, member 쿼리 1번, team 쿼리 2번 -> team 쿼리 2번 날리는거 자체가 N+1
+List<Member> list = em.createQuery("select m from Member m", Member.class).getResultList();
+for (Member member : list) {
+    System.out.println(member);
+}
+
+// LAZY 설정 시, member 쿼리 1번, team 쿼리 0번 -> team 사용시 쿼리 날림 N+1
+List<Member> list2 = em.createQuery("select m from Member m", Member.class).getResultList();
+for (Member member : list2) {
+    System.out.println(member);
+}
+
+// 일반적인 join을 하더라도 LAZY, EAGER에 따라 LAZY면 team쿼리를 2번날리고, EAGER이면 사용할때 다시 쿼리를 매번 날림
+List<Member> list3 = em.createQuery("select m from Member m join m.team t", Member.class).getResultList();
+for (Member member : list3) {
+    System.out.println("member = " + member);
+    System.out.println("member.getTeam().getName() = " + member.getTeam().getName());
+}
+
+// fetch join을 사용하면 한번에 다 가져오기 때문에(fetch 전략과 관계없이) N+1 문제가 발생하지 않는다
+List<Member> list4 = em.createQuery("select m from Member m join fetch m.team", Member.class).getResultList();
+for (Member member : list4) {
+    System.out.println("member = " + member);
+    System.out.println("member.getTeam().getName() = " + member.getTeam().getName());
+}
+
+-> FetchType 보다 우선임
+
+-> 뭐 em.find()는 제외하고
+-> 예를들어 JPQL이 "select m.team from Member m" 이거라면 결국 묵시적 내부조인이 일어나서 문제가 있음
+-> 되도록 명시적 조인을 사용해야 하지만 이 명시적 조인도 그냥 일반 조인으로 사용하면
+-> 일반 JOIN은 결국 EAGER, LAZY 설정을 따라가 N+1 문제를 발생시킴 
+-> 때문에 fetch 조인을 사용해서 N+1문제를 해결해야함

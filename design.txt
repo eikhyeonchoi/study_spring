@@ -112,3 +112,53 @@ member.setAddress(new Adderss("", "", ""));
 
 
 벌크연산 사용후 영속성 컨텍스트를 초기화할 것
+
+
+
+★★★
+★★★
+★★★
+API 설계시 엔티티를 파라미터로 받지도말고 리턴해서도 안된다
+DTO를 만들어야하는데 inner class로 만들어도 됨
+Request, Response 모두 다 엔티티를 사용하면 안되고 DTO 사용해야함
+이렇게하면 엔티티 클래스들을 깔끔하게 할 수 있음 @NotEmpty, @JsonIgnore등을 안 쓸 수 있음
+
+주의1 
+엔티티를 직접 노출할 때는 양방향 연관관계가 걸린 곳은 꼭! 한곳을 @JsonIgnore 처리 해야 한다. 안그러면 양쪽을 서로 호출하면서 무한 루프가 걸린다. 
+
+주의2 
+지연로딩 오류는 엔티티를 직접 반환하는 경우 LAZY로 설정되어있으면 프록시기 때문에 오류가 발생하는거임
+지연 로딩(LAZY)을 피하기 위해 즉시 로딩(EARGR)으로 설정하면 안된다! 즉시 로딩 때문에
+연관관계가 필요 없는 경우에도 데이터를 항상 조회해서 성능 문제가 발생할 수 있다. 즉시 로딩으로
+설정하면 성능 튜닝이 매우 어려워 진다.
+
+위 두개의 주의 모두 엔티티를 직접 반환했을 때 발생하는 문제임
+그냥 DTO 쓰면됨
+★★★
+★★★
+★★★
+
+
+
+command query를 분리하자
+public Member updateMember(Long id, String name) {
+    Member member = memberRepository.findOne(id);
+    member.setName(name);
+    return Member;
+}
+-> command(update), query(return member);
+-> 이건 command, query가 합쳐진 것
+-> 분리하려면 메서드 리턴타입을 void로 하고 return을 앖앤다
+
+
+★★★
+★★★
+★★★
+엔티티 DTO변환  vs  DTO로 직접 조회
+1. 우선 엔티티를 DTO로 변환하는 방법을 선택한다.
+2. 필요하면 페치 조인으로 성능을 최적화 한다. 대부분의 성능 이슈가 해결된다.
+3. 그래도 안되면 DTO로 직접 조회하는 방법을 사용한다.
+4. 최후의 방법은 JPA가 제공하는 네이티브 SQL이나 스프링 JDBC Template을 사용해서 SQL을 직접 사용한다
+★★★
+★★★
+★★★

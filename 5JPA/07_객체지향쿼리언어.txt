@@ -58,10 +58,16 @@ em.createQuery("select m from Member m where m.age=?1").setParameter(1, 10);
 : SELECT m.username, m.age FROM Member m
 1. Query 타입으로 조회
 2. Object[] 타입으로 조회
-3. new 명령어로 조회 - recommended
+
+3. ★★★ new 명령어로 조회 - recommended
 : SELECT new jpabook.jpql.UserDTO(m.username, m.age) FROM Member m
 : 패키지 명을 포함한 전체 클래스 명 입력
 : 순서와 타입이 일치하는 생성자 필요
+:
+: ★★★
+: select new ... -> 엔티티가 아니라 DTO를 조회하기 떄문에 fetch join을 사용할 수 없다 -> 페치조인보다 성능이 살짝 좋음(별차이 없긴함), 유연하지 못함
+: select o ...   -> fetch join은 엔티티 그래프를 한번에 같이 조회하기 위해 사용하는 기능임 -> select절에 엔티티를 지정 -> 상대적으로 유연함(로직에서 활용성이 있음)
+
 
 
 

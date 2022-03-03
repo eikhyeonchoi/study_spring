@@ -1,0 +1,53 @@
+컬렉션 조회 최적화 
+일단 페치조인을 써야함
+
+JPQL의 distinct는 컬럼중복을 제거하는게 아니라 엔티티 중복을 걸러서 컬렉션에 담아주는 것
+
+일대다(컬렉션 페치조인)를 fetch join하는 순간 페이징이 불가능함
+-> 메모리에서 페이징을 함 
+
+일대다(컬렉션 페치조인)은 1개만 사용가능
+
+
+
+해결책
+일단 @XToOne 관계는 모두 fetch join을 한다
+"select o from Order o "
++ "join fetch o.member m "
++ "join fetch o.delivery d";
+
+컬렉션은 지연 로딩으로 설정한다
+
+지연 로딩 성능 최적화를 위해
+hibernate.default_batch_fetch_size를 설정함
+
+ex)
+@GetMapping("/api/v3.1/orders")
+public List<OrderDto> ordersV3Page() {
+    List<Order> orders = orderRepository.findAllWithMemberDelivery();
+    return orders.stream().map(o -> new OrderDto(o)).collect(Collectors.toList());
+}
+※ 총 order 2건, orderItem 4건, item 4건
+※ 2명이 각각 다른 item 2개씩을 주문한 데이터임
+default_batch_fetch_size 적용을 안한다면?
+: List<Order> orders = orderRepository.findAllWithMemberDelivery(); 여기서 일단 모든 다대일 fetch join으로 해서 쿼리 1번
+: orders.stream().map(o -> new OrderDto(o)).collect(Collectors.toList());
+: 여기서 쿼리 순서가
+: userA,B 각각의 대해 orderItem 1번 -> item 2번 -> orderItem 1번 -> item 2번
+: 총 6번 나감 1 + n + m
+
+default_batch_fetch_size 적용을 하면?
+: List<Order> orders = orderRepository.findAllWithMemberDelivery(); 여기서 일단 모든 다대일 fetch join으로 해서 쿼리 1번
+: orders.stream().map(o -> new OrderDto(o)).collect(Collectors.toList());
+: 여기서 쿼리 순서가
+: orderItem 쿼리 날릴 때 where in(userA_pk, userB_pk)해서 (batchsize 만큼) 한번 나감
+: item 쿼리 날릴 때 where in(orderItem_id1, ... ) 해서 1번 
+: 총 3번 나감 1 + 1 + 1 (물론 batchsize가 작은만큼 많이 나감)
+
+
+장점
+: 쿼리 호출 수가 1 + N 1 + 1 로 최적화 된다.
+: 조인보다 DB 데이터 전송량이 최적화 된다. (Order와 OrderItem을 조인하면 Order가
+: OrderItem 만큼 중복해서 조회된다. 이 방법은 각각 조회하므로 전송해야할 중복 데이터가 없다.)
+: 페치 조인 방식과 비교해서 쿼리 호출 수가 약간 증가하지만, DB 데이터 전송량이 감소한다.
+: 컬렉션 페치 조인은 페이징이 불가능 하지만 이 방법은 페이징이 가능하다.

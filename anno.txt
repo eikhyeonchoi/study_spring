@@ -78,10 +78,21 @@
 : 요청파라미터 받기
 
 
-@ResponseBody - 메서드에 사용
-@RestController - 클래스에 사용
+@ResponseBody - 클래스, 메서드에 사용
+@RestController - 클래스에 사용(@Controller, @ResponseBody 합친 것)
 : class에 붙이면 클래스 전체가 전체가 api화(?)된다
 : viewResolver 대신 HttpMessageConverter를 통해 문자면 그냥 문자를 반환함, 객체라면 json으로 반환함
+: @Controller와는 다르게 @RestController는 리턴값에 자동으로 @ResponseBody가 붙게되어 별도 어노테이션을 명시해주지 않아도 HTTP 응답데이터(body)에 자바 객체가 매핑되어 전달 된다.
+
+
+@PathVariable - path에 매핑된 파라미터 받기
+
+
+@RequestBody 
+: request body에 담긴 값을 자바객체로 conversion해줌
+: HTTP요청의 body가 그대로 전달되어 HttpMessageConverter를 사용함
+: 쉽게말해 request body -> 자바객체
+: 대신 자바객체에는 빈생성자가 있어야한다
 
 
 @SpringBootTest - 스프링 컨테이너와 테스트를 함께 실행

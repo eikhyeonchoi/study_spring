@@ -13,6 +13,8 @@ ctrl + alt + v = 알아서 변수선언해줌
 ctrl + alt + f7 = usages found
 ctrl + alt + T = try catch
 
+ctrl + p = 파라미터 확인
+
 alt + shift + p = 패키지생성(custom)
 alt + shift + n = 파일생성(custom)
 

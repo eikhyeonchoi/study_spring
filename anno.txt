@@ -93,6 +93,8 @@
 : HTTP요청의 body가 그대로 전달되어 HttpMessageConverter를 사용함
 : 쉽게말해 request body -> 자바객체
 : 대신 자바객체에는 빈생성자가 있어야한다
+: serialize = Object -> byte stream / Deserialize = byte stream -> Object
+: serialize, deserialize할 때 생성자 없는 파라미터를 이용함
 
 
 @SpringBootTest - 스프링 컨테이너와 테스트를 함께 실행

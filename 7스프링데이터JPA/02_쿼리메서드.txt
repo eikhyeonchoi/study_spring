@@ -1,0 +1,58 @@
+쿼리메서드 - 짤막한 쿼리 짤 때 사용하면 좋음 ex) findByUsername 이런거
+엔티티 필드명과 일단 맞춰야함
+https://docs.spring.io/spring-data/jpa/docs/current/reference/html/#jpa.query-methods
+
+참고: 이 기능은 엔티티의 필드명이 변경되면 인터페이스에 정의한 메서드 이름도 꼭 함께 변경해야 한다.
+그렇지 않으면 애플리케이션을 시작하는 시점에 오류가 발생한다.
+이렇게 애플리케이션 로딩 시점에 오류를 인지할 수 있는 것이 스프링 데이터 JPA의 매우 큰 장점이다.
+
+장점: 간단한 쿼리 쉽게 작성가능
+단점: 길어지면 답없음
+
+
+
+JPA NamedQuery - 거의 사용하지 않음
+엔티티에 적음
+@NamedQuery(
+    name="Member.findByUsername",
+    query="select m from Member m where m.username = :username")
+}
+public class Member {}
+
+사용
+1. em.createQuery("Member.findByUsername") ...
+2. @Query(name = "Member.findByUsername") // << @NamedQuery 부터 찾기 때문에 이 줄 주석해도 가능 
+   List<Member> 이름아무거나가능(@Param("username") String username);
+
+장점: 쿼리(필드명)이 틀리면 어플리케이션 로딩시점에 에러를 띄움(실행이 안됨)
+단점: 여기저기 나뉘어져있음
+
+
+
+@Query - 실무에서 많이 씀
+interface(repository)에 작성함
+@Query("select m from Member m where m.username :username and m.age = :age")
+List<Member> findUser(@Param("username") String username, @Param("age") int age);
+
+dto도 가능함
+@Query("select new study.datajpa.dto.MemberDto(m.id, m.username, t.name) from Member m join m.team t")
+List<MemberDto> findMemberDto();
+
+파라미터 바인딩
+@Query("select m from Member m where m.username in :names")
+List<Member> findByNames(@Param("names") Collection<String> names);
+
+리턴타입
+컬렉션, 단건, Optional 반환 가능
+List<Member> findListByUsername(String username); - 없어도 null이 아님, 빈컬렉션이라도 반환함
+Member findMemberByUsername(String username); - 없으면 null
+Optional<Member> findOptionalByUsername(String username);
+https://docs.spring.io/spring-data/jpa/docs/current/reference/html/#repository-query-return-types
+
+장점: 쿼리(필드명)이 틀리면 어플리케이션 로딩시점에 에러를 띄움(실행이 안됨)
+단점: 동적쿼리는 QueryDSL을 사용해야함
+
+
+
+
+

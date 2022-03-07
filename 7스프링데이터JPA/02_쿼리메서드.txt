@@ -1,6 +1,7 @@
 쿼리메서드 - 짤막한 쿼리 짤 때 사용하면 좋음 ex) findByUsername 이런거
 엔티티 필드명과 일단 맞춰야함
 https://docs.spring.io/spring-data/jpa/docs/current/reference/html/#jpa.query-methods
+find ...(아무거나)By(필드명 첫글자 대문자로)
 
 참고: 이 기능은 엔티티의 필드명이 변경되면 인터페이스에 정의한 메서드 이름도 꼭 함께 변경해야 한다.
 그렇지 않으면 애플리케이션을 시작하는 시점에 오류가 발생한다.
@@ -54,5 +55,70 @@ https://docs.spring.io/spring-data/jpa/docs/current/reference/html/#repository-q
 
 
 
+★★★
+★★★
+★★★
+페이징과 정렬 파라미터
+org.springframework.data.domain.Sort : 정렬 기능
+org.springframework.data.domain.Pageable : 페이징 기능 (내부에 Sort 포함)
+
+특별한 반환 타입
+org.springframework.data.domain.Page : 추가 count 쿼리 결과를 포함하는 페이징
+org.springframework.data.domain.Slice : 추가 count 쿼리 없이 다음 페이지만 확인 가능(내부적으로 limit + 1조회)
+
+예시
+... interface
+@Query(value = "select m from Member m left join m.team t", countQuery = "select count(m) from Member m")
+Page<Member> findByAge(int age, Pageable pageable);
+: Slice<Member>도 가능(totalCount가 없음)
+: 성능 최적화를 위해 쿼리에 조인이 엄청 많이 발생할 경우 카운팅 쿼리를 따로 설정할 수 있음
+
+Pageable 파라미터 넣을 때, PageRequest class를 사용하면됨
+ex) PageRequest pageRequest = PageRequest.of(0, 3, Sort.by(Sort.Direction.DESC, "username"));
+
+꿀팁!
+API 통신에서 page content를 DTO로 만들기
+Page<MemberDto> dtoPage = page.map(m -> new MemberDto());
+★★★
+★★★
+★★★
 
 
+
+벌크성 수정
+순수 JPA
+: executeUpdate()
+Data JPA
+: @Modifying 
+: @Query("update Member m set m.age + 1 where m.age >= :age")
+: int bulkAgePlus(@Param("age") int age);
+
+주의
+벌크연산 후 영속성 컨텍스트를 clear해줘야함
+spring data JPA에서는
+@Modifying(clearAutomatically = true)해주면 된다
+
+
+
+fetch join을 쓰고싶을 때?  
+@Query("select m from Member m left join fetch m.team")
+List<Member> findMemberFetchJoin();
+
+@Override
+@EntityGraph(attributePaths = {"team"})
+List<Member> findAll();
+
+@EntityGraph(attributePaths = {"team"})
+@Query("select m from Member m")
+List<Member> findMemberEntityGraph();
+
+: 위 3개는 같은 결과를 반환함
+: @EntityGraph - 페치조인임
+
+
+
+JPA Hint - 성능이 크게 좋아지진 않음
+오직 조회목적으로 사용한다면 최적화를 할 수 있다
+-> 변경감지를 하지않음(스냅샷을 만들지 않음)
+@QueryHints(value = @QueryHint(name = "org.hibernate.readOnly", value ="true"))
+Member findReadOnlyByUsername(String username);

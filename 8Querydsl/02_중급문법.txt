@@ -1,0 +1,156 @@
+프로젝션 - select 대상 지정
+
+결과반환 기본
+프로젝션 대상이 하나
+List<String> result = queryFactory
+    .select(member.username)
+    .from(member)
+    .fetch();
+프로젝션 대상이 하나면(객체가 아니더라도) 타입을 명확하게 지정할 수 있음
+프로젝션 대상이 둘 이상이면 튜플이나 DTO로 조회
+
+튜플 조회
+프로젝션 대상이 둘 이상일 때 사용
+List<Tuple> result = queryFactory
+    .select(member.username, member.age)
+    .from(member)
+    .fetch();
+tuple.get(member.username);
+tuple.get(member.age);
+
+-> tuple은 repository에서만 사용하는걸 추천
+-> 밖에 나갈때는 dto로 반환해서 나가도록 설계 추천
+
+
+
+결과반환 DTO
+: 기본 생성자가 있어야함
+
+프로퍼티  접근
+List<MemberDto> result = queryFactory
+    .select(
+        Projections.bean(MemberDto.class,member.username,member.age)
+    )
+    .from(member)
+    .fetch();
+
+필드직접 접근
+List<MemberDto> result = queryFactory
+    .select(
+        Projections.fields(MemberDto.class,member.username,member.age)
+    )
+    .from(member)
+    .fetch();
+
+생성자 접근 - 파라미터가 안맞으면 런타임 오류가 발생함
+List<MemberDto> result = queryFactory
+    .select(
+        Projections.constructor(MemberDto.class,member.username,member.age)
+    )
+    .from(member)
+    .fetch();
+
+별칭이 다를 때
+List<UserDto> fetch = queryFactory
+    .select(
+        Projections.fields(
+            UserDto.class,
+            member.username.as("name"),
+            ExpressionUtils.as( // 서브쿼리시
+                JPAExpressions.select(memberSub.age.max()).from(memberSub), 
+                "age"
+            )
+        )
+    )
+    .from(member)
+    .fetch();
+
+    
+
+결과반환 @QueryProjection
+: DTO클래스의 생성자에 @QueryProjection를 넣어주면
+: 해당 클래스도 Q파일로 관리하게끔 된다
+: 대신 DTO자체가 querydsl에 의존적이게 된다
+
+List<MemberDto> result = queryFactory
+    .select(new QMemberDto(member.username, member.age))
+    .from(member)
+    .fetch();
+
+ㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡ
+
+동적쿼리
+
+BooleanBuilder사용
+BooleanBuilder builder = new BooleanBuilder();
+if (usernameCond != null) {
+    builder.and(member.username.eq(usernameCond));
+}
+
+if (ageCond != null) {
+    builder.and(member.age.eq(ageCond));
+}
+return queryFactory
+    .selectFrom(member)
+    .where(builder)
+    .fetch();
+
+
+
+where 다중 파라미터 사용 - recommended
+queryFactory
+    .selectFrom(member)
+    .where(
+        usernameCond == null ? null : member.username.eq(usernameCond), 
+        ageCond == null ? null : member.age.eq(ageCond)
+    )
+    .fetch();
+
+함수로 빼도됨
+private BooleanExpression usernameEq(String usernameCond) {
+    return usernameCond != null ? member.username.eq(usernameCond) : null;
+}
+private BooleanExpression ageEq(Integer ageCond) {
+    return ageCond != null ? member.age.eq(ageCond) : null;
+}
+private BooleanExpression allEq(String usernameCond, Integer ageCond) {
+    return usernameEq(usernameCond).and(ageEq(ageCond));
+}
+
+ㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡ
+
+수정 삭제 벌크연산
+
+수정
+long count = queryFactory
+    .update(member)
+    .set(member.username, "비회원")
+    .where(member.age.lt(28))
+    .execute();
+
+long count = queryFactory
+    .update(member)
+    .set(member.age, member.age.add(1))
+    .execute();
+곱하기: multiply(x)
+
+삭제
+long count = queryFactory
+    .delete(member)
+    .where(member.age.gt(18))
+    .execute();
+
+주의: JPQL 배치와 마찬가지로, 영속성 컨텍스트에 있는 엔티티를 무시하고 실행되기 때문에 배치 쿼리를
+실행하고 나면 영속성 컨텍스트를 초기화 하는 것이 안전하다.
+DB에서 가져온 값보다 영속성 컨텍스트가 우선권을 가지기 때문에 영속성 컨텍스트를 초기화 해줘야함
+
+
+
+SQL function 호출하기
+SQL function은 JPA와 같이 Dialect에 등록된 내용만 호출할 수 있다
+String result = queryFactory
+    .select(
+        Expressions.stringTemplate("function('replace', {0}, {1}, {2})", member.username, "member", "M")
+    )
+    .from(member)
+    .fetchFirst();

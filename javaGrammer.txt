@@ -1,9 +1,21 @@
 :::살펴봐야할 자바 문법들:::
 
-
 private HashMap<Long, String> store = new HashMap<>();
 store.values().stream().filter(member -> member.getName().equals(name)).findAny();
 : .values() -> collection return
 : .stream() -> stream return
 : .filter() -> stream return
 : .findAny() -> Optionnal return
+: .map() -> js map이랑 비슷
+
+
+
+Optionnal(java 8)
+NullpointerException 문제를 해결할 수 있는 문법
+.of(T value) -> 객체를 Optionnal로 감싸기
+.ofNullable(T value) -> of와 동일하고, null 가능
+.isPresent() -> Optionnal이 null인지 아닌지 판단가능 (if 대체가능)
+.ifPresent(Consumer<? super T> consumer) -> 값이 있는 경우 작성된 기능을 실행 없을 경우 실행X
+.get() -> 값이 존재하면 해당 값을 리턴 없을 경우 예외발생
+.orElseGet(Supplier<? extends T> other) -> 값이 있는 경우 값 전달 없으면 Other 처리된 부분을 전달
+.orElse(T other) -> Optional의 값이 있으면 값을 전달 아닌 경우 처리된 케이스 전달

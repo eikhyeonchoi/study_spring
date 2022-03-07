@@ -1,7 +1,6 @@
 :::annotation 정리:::
 
 ㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡ
-
 컴포넌트 스캔과 자동 의존관계 설정
 
 @ComponentScan
@@ -36,7 +35,6 @@
 : 동일한 타입의 스프링 빈이 여러 있다면 이 어노테이션이 붙은 빈이 우선순위가 높다
 : 주입되는 빈에만 적어줘도 된다 
 ㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡ
-
 자바 코드로 직접 스프링 빈 등록하기
 
 @Configuration - class에서 사용
@@ -103,7 +101,6 @@
 
 
 ㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡ
-
 JPA
 
 @Entity - domain, class에 사용
@@ -225,3 +222,35 @@ em.merge(Object) - update
 
 @MappedSuperclass
 : 공통 매핑 정보가 필요할 때 사용(create_dt, update_dt 등)
+
+ㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡ
+spring data JPA
+
+@Query(value = "", nativeQuery = boolean)
+: 쿼리를 명시할 때(interface에)
+: value - 쿼리내용
+: nativeQuery - 네이티브쿼리인지?
+@EntityGraph(attributePaths = {"team"})
+: @Query 사용시 페치조인 추가
+@Param
+: @Query 사용시 파라미터 바인딩할 때(파라미터)
+
+
+@Modifying(clearAutomatically = true)
+: 벌크 수정 및 수정 후 영속성 컨텍스트 초기화
+
+
+@EnableJpaAuditing
+: Auditing할 때 스프링 부트 설정클래스에 명시해야함
+@CreatedDate
+: 생성일
+@LastModifiedBy
+: 수정일
+
+
+ㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡ
+Querydsl
+
+@QueryProjection - 클래스->생성자에 사용
+: DTO까지 Qtype으로 관리함
+

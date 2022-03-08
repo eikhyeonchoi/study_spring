@@ -19,3 +19,15 @@ NullpointerException 문제를 해결할 수 있는 문법
 .get() -> 값이 존재하면 해당 값을 리턴 없을 경우 예외발생
 .orElseGet(Supplier<? extends T> other) -> 값이 있는 경우 값 전달 없으면 Other 처리된 부분을 전달
 .orElse(T other) -> Optional의 값이 있으면 값을 전달 아닌 경우 처리된 케이스 전달
+
+
+
+Java 8의 Function은 1개의 인자(Type T)를 받고 1개의 객체(Type R)를 리턴하는 함수형 인터페이스
+public interface Function<T, R> {
+    R apply(T t);
+}
+
+ex1)
+Function<Integer, Integer> func1 = x -> x * x;
+Integer result = func1.apply(10);
+System.out.println(result);

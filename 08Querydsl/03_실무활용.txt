@@ -1,0 +1,43 @@
+사용자 정의 리포지토리
+
+<<interface>>
+JpaRepository
+
+3. 스프링 데이터 리포지토리에 사용자 정의 인터페이스 상속
+<<interface>>
+MemberRepository extends JpaReposiotory, MemberRepositoryCustom
+
+1. 사용자 정의 인터페이스 작성
+<<interface>>
+MemberRepositoryCustom 
+- search()
+
+2. 사용자 정의 인터페이스 구현
+<<class>>
+MemberRepositoryImpl implements MemberRepositoryCustom
+- search()
+
+
+
+페이징 활용
+CountQuery 최적화
+PageableExecutionUtils.getPage()로 최적화
+JPAQuery<Member> countQuery = queryFactory
+    .select(member)
+    .from(member)
+    .leftJoin(member.team, team)
+    .where(
+        usernameEq(condition.getUsername()),
+        teamNameEq(condition.getTeamName()),
+        ageGoe(condition.getAgeGoe()),
+        ageLoe(condition.getAgeLoe())
+    );
+return PageableExecutionUtils.getPage(content, pageable, countQuery::fetchCount);
+
+
+
+정렬은 그냥 직접 파라미터로 받아서 하는걸 추천
+
+
+
+

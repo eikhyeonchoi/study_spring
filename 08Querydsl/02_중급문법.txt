@@ -24,7 +24,7 @@ tuple.get(member.age);
 
 
 결과반환 DTO
-: 기본 생성자가 있어야함
+: 기본생성자가 있어야함
 
 프로퍼티  접근
 List<MemberDto> result = queryFactory

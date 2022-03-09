@@ -77,7 +77,9 @@
 
 @RequestParam
 : 요청파라미터 받기
-: json -> 객체로 매핑가능
+: value - 받을 파라미터 명
+: required - 필수 여부
+: default - 기본값
 
 
 @ResponseBody - 클래스, 메서드에 사용

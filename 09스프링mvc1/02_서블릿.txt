@@ -1,6 +1,6 @@
 -> 웹브라우저가 HTTP 요청을 만듦
 -> 서버에게 보냄
--> 서버는 HTTP요청 메세지 기반으로 HttpServletRequest, HttpServletResponse를 만들어서
+-> 서버는 HTTP요청 메세지 기반으로 HttpServletRequest(HTTP 요청을 파싱해서), HttpServletResponse(빈 객체)를 만들어서
 -> 싱글톤으로 존재하는 서블릿객체에게 넘겨주고 service메서드를 실행함 (service(request, response))
 -> service메서드가 종료되면 Response 객체 정보로 HTTP 응답을 생성하고 보낸다
 
@@ -13,8 +13,6 @@ HTTP 요청 메시지를 편리하게 사용할 수 있도록 개발자 대신�
 
 사용법
 https://docs.oracle.com/javaee/6/api/javax/servlet/http/HttpServletRequest.html
-
-
 
 요청데이터 
 
@@ -33,3 +31,24 @@ https://docs.oracle.com/javaee/6/api/javax/servlet/http/HttpServletRequest.html
 : ObjectMapper로 json -> 객체로 매핑가능
 : JSON 결과를 파싱해서 사용할 수 있는 자바 객체로 변환하려면 Jackson, Gson 같은 JSON 변환
 : 라이브러리를 추가해서 사용해야 한다. 스프링 부트로 Spring MVC를 선택하면 기본으로 Jackson라이브러리(ObjectMapper)를 함께 제공한다.
+
+
+
+HttpServletResponse
+
+HTTP 응답코드 지정 response.setStatus
+헤더 생성 response.setHeader
+바디 생성 
+
+사용법
+https://docs.oracle.com/javaee/6/api/javax/servlet/http/HttpServletResponse.html
+
+
+
+:: default servlet form :: 
+@WebServlet(name = "memberFormServlet", urlPatterns = "/servlet/members/new-form")
+public class MemberFormServlet extends HttpServlet {
+    @Override
+    protected void service(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+    }
+}

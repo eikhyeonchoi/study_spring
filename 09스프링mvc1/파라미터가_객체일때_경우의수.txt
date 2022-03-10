@@ -1,0 +1,29 @@
+파라미터를 객체로 받는 경우임
+
+@RequestParam
+다 불가능
+
+@ModelAttribute - 생성자가 하나여야함
+x-www-form-urlencoded 가능
+form-data 가능
+json 불가능(null)
+
+@RequestBody
+x-www-form-urlencoded 415
+form-data 415
+json 가능
+
+dependencies
+commons-fileupload(apache) 넣고
+@ModelAttribute or 아무 어노테이션 쓰지 않고 객체로 받을 수 있음
+어노테이션을 생략한다? -> ModelAttribute로 인식함
+
+
+스프링은 @ModelAttribute , @RequestParam 해당 생략시 다음과 같은 규칙을 적용한다.
+String , int , Integer 같은 단순 타입 = @RequestParam
+나머지 = @ModelAttribute (argument resolver 로 지정해둔 타입 외)
+
+
+정리
+form-data -> commons-fileupload + 객체로
+json -> @RequestBody + 객체로

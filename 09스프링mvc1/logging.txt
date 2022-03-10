@@ -1,0 +1,23 @@
+운영 시스템에서는 System.out.println() 같은 시스템 콘솔을 사용해서 필요한 정보를 출력하지 않고, 별도의 로깅 라이브러리를 사용해서 로그를 출력
+로그 라이브러리는 Logback, Log4J, Log4J2 등등 수 많은 라이브러리가 있는데, 그것을 통합해서 인터페이스로 제공하는 것이 바로 SLF4J 라이브러리다.
+
+로그 선언
+private Logger log = LoggerFactory.getLogger(getClass());
+private static final Logger log = LoggerFactory.getLogger(Xxx.class)
+
+@Slf4j : 롬복 사용 가능, 로그 선언을 안해도 되게 해줌
+
+단계별 로깅 레벨
+log.trace("trace log={}", name);
+log.debug("debug log={}", name);
+log.info(" info log={}", name);
+log.warn(" warn log={}", name);
+log.error("error log={}", name);
+
+application.properties에 로깅레벨을 설정할 수 있다
+logging.level.root = trace
+logging.level.패키지명 = trace
+
+log.debug("data="+data);
++ "연산" 을 사용하면 안됨
+로깅하지 않아도 + 연산을 하기 떄문에 리소스 낭비임

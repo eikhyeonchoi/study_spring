@@ -1,0 +1,205 @@
+@RequestMapping - 메서드에 사용
+: /hello-basic URL 호출이 오면 이 메서드가 실행되도록 매핑한다.
+: 대부분의 속성을 배열[] 로 제공하므로 다중 설정이 가능하다. {"/hello-basic", "/hello-go"}
+: @RequestMapping method 속성으로 HTTP 메서드를 지정하지 않으면 HTTP 메서드와 무관하게 호출
+: method 지정 후 안맞으면 405
+
+/**
+ * 파라미터로 추가 매핑
+ * params="mode",
+ * params="!mode"
+ * params="mode=debug"
+ * params="mode!=debug" (! = )
+ * params = {"mode=debug","data=good"}
+ */
+@GetMapping(value = "/mapping-param", params = "mode=debug")
+
+/**
+ * 특정 헤더로 추가 매핑
+ * headers="mode",
+ * headers="!mode"
+ * headers="mode=debug"
+ * headers="mode!=debug" (! = )
+ */
+@GetMapping(value = "/mapping-header", headers = "mode=debug")
+
+/**
+ * Content-Type 헤더 기반 추가 매핑 Media Type
+ * consumes="application/json"
+ * consumes="!application/json"
+ * consumes="application/*"
+ * consumes="*\/*"
+ * MediaType.APPLICATION_JSON_VALUE
+ */
+@PostMapping(value = "/mapping-consume", consumes = "application/json")
+
+/**
+ * Accept 헤더 기반 Media Type
+ * produces = "text/html"
+ * produces = "!text/html"
+ * produces = "text/*"
+ * produces = "*\/*"
+ */
+@PostMapping(value = "/mapping-produce", produces = "text/html")
+
+
+@PathVariable - 파라미터에 사용
+: @GetMapping("/mapping/{userId}")
+: @PathVariable("userId") 파라미터로 받을 수 있음
+: 경로변수와 파라미터 명이 같으면 생략가능 @PathVariable String userId
+: 다중도 가능
+
+
+@ResponseBody : View 조회를 무시하고, HTTP message body에 직접 해당 내용 입력
+
+
+@RequestParam - 파라미터에 사용
+: HTTP 파라미터 이름이 변수 이름과 같으면 @RequestParam(name="xx") 생략 가능
+: String , int , Integer 등의 단순 타입이면 @RequestParam 도 생략 가능
+: @RequestParam.required - 기본값이 파라미터 필수( true )이다.
+: @RequestParam.default - 기본 값을 적용할 수 있다.
+: 파라미터를 Map, MultiValueMap으로 조회할 수 있다 
+: key=value 1:1 매칭이면 map, 한 key=value 1:n 이면 MultiValueMap
+: 주의
+: /request-param?username= -> 빈 문자로 통과함
+: 기본형(primitive)에 null 입력 -> wrapper클래스로 만들던가, default를 주던가
+
+
+@ModelAttribute - 파라미터에 사용
+: 파라미터를 객체로 바인딩 해준다(form-data, x-www-form-urlencoded 등)
+: 파라미터명과 객체의 필드명을 맞춰준다
+
+
+@RequestBody
+: 사용하면 HTTP 메시지 바디 정보를 편리하게 조회할 수 있다. 참고로 헤더 정보가
+: 필요하다면 HttpEntity 를 사용하거나 @RequestHeader 를 사용하면 된다.
+: 이렇게 메시지 바디를 직접 조회하는 기능은 요청 파라미터를 조회하는 @RequestParam , @ModelAttribute 와는 전혀 관계가 없다.
+: MappingJackson2HttpMessageConverter가 content-type=application/json이면 
+: ObjectMapper mapper = new ObjectMapper();
+: HelloData hello = mapper.readValue(messageBody, HelloData.class);
+: 이 코드를 자동으로 해주는 것
+
+
+요청 파라미터 vs HTTP 메시지 바디
+요청 파라미터를 조회하는 기능: @RequestParam , @ModelAttribute
+HTTP 메시지 바디를 직접 조회하는 기능: @RequestBody
+
+
+@ResponseBody
+: 사용하면 응답 결과를 HTTP 메시지 바디에 직접 담아서 전달할 수 있다. 물론 이 경우에도 view를 사용하지 않는다.
+
+
+스프링은 @ModelAttribute , @RequestParam 해당 생략시 다음과 같은 규칙을 적용한다.
+String , int , Integer 같은 단순 타입 = @RequestParam
+나머지 = @ModelAttribute (argument resolver 로 지정해둔 타입 외)
+
+
+@RequestBody 요청
+JSON 요청 HTTP 메시지 컨버터 객체
+
+@ResponseBody 응답
+객체 HTTP 메시지 컨버터 JSON 응답
+객체가 json으로 바뀐 후 http response body로 매핑(?)된다
+
+
+
+
+
+
+HTTP 응답 - 정적 리소스, 뷰 템플릿
+
+정적 리소스
+예) 웹 브라우저에 정적인 HTML, css, js을 제공할 때는, 정적 리소스를 사용한다.
+경로 src/main/resources/static
+
+
+뷰 템플릿
+뷰 템플릿을 거쳐서 HTML이 생성되고, 뷰가 응답을 만들어서 전달한다.
+경로 src/main/resources/templates
+// 가장 보편적
+@RequestMapping("/response-view-v2")
+public String responseViewV2(Model model) {
+    model.addAttribute("data", "hello!!");
+    return "response/hello";
+}
+
+String을 반환하는 경우 - View or HTTP 메시지
+@ResponseBody 가 없으면 response/hello 로 뷰 리졸버가 실행되어서 뷰를 찾고, 렌더링
+@ResponseBody 가 있으면 뷰 리졸버를 실행하지 않고, HTTP 메시지 바디에 직접 response/hello 라는 문자가 입력
+!!! void 반환하지 말 것 !!!
+
+
+
+HTTP 메세지 컨버터
+
+0 = ByteArrayHttpMessageConverter
+: 클래스 타입: byte[] , 미디어타입: */* ,
+
+1 = StringHttpMessageConverter
+: 클래스 타입: String , 미디어타입: */*
+
+2 = MappingJackson2HttpMessageConverter
+: 클래스 타입: 객체 또는 HashMap , 미디어타입 application/json 관련
+
+
+@ResponseBody 사용원리
+: HTTP의 BODY에 문자 내용을 직접 반환
+: viewResolver 대신에 HttpMessageConverter 가 동작
+: 기본 문자처리: StringHttpMessageConverter
+: 기본 객체처리: MappingJackson2HttpMessageConverter
+: byte 처리 등등 기타 여러 HttpMessageConverter가 기본으로 등록되어 있음
+
+스프링 MVC는 다음의 경우에 HTTP 메시지 컨버터를 적용한다.
+HTTP 요청: @RequestBody , HttpEntity(RequestEntity)
+HTTP 응답: @ResponseBody , HttpEntity(ResponseEntity)
+
+HTTP 요청 데이터 읽기
+1. HTTP 요청이 오고, 컨트롤러에서 @RequestBody , HttpEntity 파라미터를 사용한다.
+2. 메시지 컨버터가 메시지를 읽을 수 있는지 확인하기 위해 canRead() 를 호출한다.
+    2-1. 대상 클래스 타입을 지원하는가. ex) @RequestBody 의 대상 클래스 ( byte[] , String , HelloData )
+    2-2. HTTP 요청의 Content-Type 미디어 타입을 지원하는가. ex) text/plain , application/json , */*
+3. canRead() 조건을 만족하면 read() 를 호출해서 객체 생성하고, 반환한다.
+
+HTTP 응답 데이터 생성
+1. 컨트롤러에서 @ResponseBody , HttpEntity 로 값이 반환된다.
+2. 메시지 컨버터가 메시지를 쓸 수 있는지 확인하기 위해 canWrite() 를 호출한다.
+    2-1. 대상 클래스 타입을 지원하는가. ex) return의 대상 클래스 ( byte[] , String , HelloData )
+    2-2. HTTP 요청의 Accept 미디어 타입을 지원하는가.(더 정확히는 @RequestMapping 의 produces ) ex) text/plain , application/json , */*
+3. canWrite() 조건을 만족하면 write() 를 호출해서 HTTP 응답 메시지 바디에 데이터를 생성한다.
+
+
+
+ArgumentResolver
+: 스프링에서 매우 다양한 파라미터를 사용할 수 있게 해주는 역할을 함
+: 어댑터는 ArgumentResolver를 호출해서 핸들러가 필요로 하는 다양한 파라미터 값(객체)를 생성한다
+: 그리고 파라미터의 값이 모두 준비되면 컨트롤러를 호출하면서 값을 넘김
+: supportsParameter() 를 호출해서 해당 파라미터를 지원하는지 체크하고, 
+: 지원하면 resolveArgument() 를 호출해서 실제 객체를 생성한다. 그리고 이렇게 생성된 객체가 컨트롤러 호출시 넘어가는 것
+: 여기서 HTTP Converter를 사용하는 것
+
+ReturnValueHandler
+: 스프링에서는 다양한 응답값을 반환할 수 있음, 응답 값을 변환하고 처리하는 역할을 함
+: 여기서 HTTP Converter를 사용하는 것
+
+
+요청의 경우 @RequestBody 를 처리하는 ArgumentResolver 가 있고, HttpEntity 를 처리하는 ArgumentResolver 가 있다. 
+이 ArgumentResolver 들이 HTTP 메시지 컨버터를 사용해서 필요한 객체를 생성하는 것
+
+응답의 경우 @ResponseBody 와 HttpEntity 를 처리하는 ReturnValueHandler 가 있다.
+이 ReturnValueHandler 들이 HTTP 메시지 컨버터를 호출해서 응답 결과를 만드는 것
+
+
+
+@RequestBody, @ResponseBody 컨버팅 정리
+요청
+1. 요청이 옴
+2. 파라미터에 @RequestBody가 있음(Http Request Body를 직접 받아야함)
+3. ArgumentResolver가 파라미터를 지원하는지 확인해야함(Content-Type과 파라미터 타입을 확인 함)
+4. byte[], string, Object(or Map) 맞는 컨버터를 찾은 후 맞다면 호출 (읽을 수 있는지 canRead() -> 읽을 수 있다면 read())
+5. 호출하면 객체생성이 되고 이 객체를 컨트롤러에 넘김
+
+응답
+1. @ResponseBody가 있고 값이 반환되면
+2. ReturnValueHandler가 응답 값을 봄(byte[], String, Object(or Map) 등) (Accept 미디어 타입과 리턴 타입을 확인 함)
+3. byte[], string, Object(or Map) 맞는 컨버터를 찾은 후 맞다면 호출 (쓸 수 있는지 canWrite() -> 읽을 수 있다면 write())
+4. 응답

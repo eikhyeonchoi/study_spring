@@ -1,4 +1,11 @@
-:::살펴봐야할 자바 문법들:::
+:::살펴봐야할 자바 문법들 및 기타 세팅 들:::
+
+
+
+WAR는 서버에 톰캣(WAS)를 별도로 설치하고 거기에 build된 파일을 넣을 때, jsp를 써야할 때
+JAR는 내장 톰캣으로 바로 돌리는 경우 // webapp 경로도 사용하지 않음
+
+
 
 private HashMap<Long, String> store = new HashMap<>();
 store.values().stream().filter(member -> member.getName().equals(name)).findAny();

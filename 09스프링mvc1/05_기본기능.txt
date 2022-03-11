@@ -203,3 +203,10 @@ ReturnValueHandler
 2. ReturnValueHandler가 응답 값을 봄(byte[], String, Object(or Map) 등) (Accept 미디어 타입과 리턴 타입을 확인 함)
 3. byte[], string, Object(or Map) 맞는 컨버터를 찾은 후 맞다면 호출 (쓸 수 있는지 canWrite() -> 읽을 수 있다면 write())
 4. 응답
+
+
+
+PRG Post/Redirect/Get 
+Post하고 새로고침하면 다시 Post요청을 함
+그래서 Post요청 후 redirect를 추가해서 Get으로 가면
+Post요청을 다시 못하도록 막을 수 있다

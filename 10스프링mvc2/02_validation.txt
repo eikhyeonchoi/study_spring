@@ -1,0 +1,96 @@
+기본 validation
+
+컨트롤러서 직접 validation작성
+@PostMapping("/add")
+public String addItem(@ModelAttribute Item item, RedirectAttributes redirectAttributes, Model model) {
+    //검증 오류 결과를 보관
+    Map<String, String> errors = new HashMap<>();
+
+    //검증 로직
+    if (!StringUtils.hasText(item.getItemName())) {
+        errors.put("itemName", "상품 이름은 필수입니다.");
+    }
+    if (item.getPrice() == null || item.getPrice() < 1000 || item.getPrice() > 1000000) {
+        errors.put("price", "가격은 1,000 ~ 1,000,000 까지 허용합니다.");
+    }
+    if (item.getQuantity() == null || item.getQuantity() >= 9999) {
+        errors.put("quantity", "수량은 최대 9,999 까지 허용합니다.");
+    }
+
+    //특정 필드가 아닌 복합 룰 검증
+    if (item.getPrice() != null && item.getQuantity() != null) {
+        int resultPrice = item.getPrice() * item.getQuantity();
+        if (resultPrice < 10000) {
+            errors.put("globalError", "가격 * 수량의 합은 10,000원 이상이어야 합니다. 현재 값 = " + resultPrice);
+        }
+    }
+
+    //검증에 실패하면 다시 입력 폼으로
+    if (!errors.isEmpty()) {
+        log.info("errors = {} ", errors);
+        model.addAttribute("errors", errors);
+        return "validation/v1/addForm";
+    }
+
+    //성공 로직
+    Item savedItem = itemRepository.save(item);
+    redirectAttributes.addAttribute("itemId", savedItem.getId());
+    redirectAttributes.addAttribute("status", true);
+    return "redirect:/validation/v1/items/{itemId}";
+}
+: 타입 오류 처리가 안된다. Item 의 price , quantity 같은 숫자 필드는 타입이 Integer 이므로 문자 타입으로 설정하는 것이 불가능하다. 숫자 타입에 문자가 들어오면 오류가 발생한다.
+: 결국 고객이 입력한 값도 어딘가에 별도로 관리가 되어야 한다.
+
+
+
+
+
+BindingResult 사용
+public String addItemV1(@ModelAttribute Item item, BindingResult bindingResult, RedirectAttributes redirectAttributes, Model model) {
+    //검증 로직
+    if (!StringUtils.hasText(item.getItemName())) {
+        bindingResult.addError(new FieldError("item", "itemName", "상품 이름은 필수 입니다."));
+    }
+    if (item.getPrice() == null || item.getPrice() < 1000 || item.getPrice() > 1000000) {
+        bindingResult.addError(new FieldError("item", "price", "가격은 1,000 ~ 1,000,000 까지 허용합니다."));
+    }
+    if (item.getQuantity() == null || item.getQuantity() >= 9999) {
+        bindingResult.addError(new FieldError("item", "quantity", "수량은 최대 9,999 까지 허용합니다."));
+    }
+
+    //특정 필드가 아닌 복합 룰 검증
+    if (item.getPrice() != null && item.getQuantity() != null) {
+        int resultPrice = item.getPrice() * item.getQuantity();
+        if (resultPrice < 10000) {
+            bindingResult.addError(new ObjectError("item", "가격 * 수량의 합은 10,000원 이상이어야 합니다. 현재 값 = " + resultPrice));
+        }
+    }
+
+    //검증에 실패하면 다시 입력 폼으로
+    if (bindingResult.hasErrors()) {
+        log.info("errors={} ", bindingResult);
+        return "validation/v2/addForm";
+    }
+
+    //성공 로직
+    Item savedItem = itemRepository.save(item);
+    redirectAttributes.addAttribute("itemId", savedItem.getId());
+    redirectAttributes.addAttribute("status", true);
+    return "redirect:/validation/v2/items/{itemId}";
+}
+
+: BindingResult bindingResult 파라미터의 위치는 @ModelAttribute Item item 다음에 와야 한다
+: BindingResult 자동으로 view에 넘어감
+:
+: 필드 오류 - FieldError
+: public FieldError(String objectName, String field, String defaultMessage) {}
+: 필드에 오류가 있으면 FieldError 객체를 생성해서 bindingResult 에 담아두면 된다.
+: objectName : @ModelAttribute 이름
+: field : 오류가 발생한 필드 이름
+: defaultMessage : 오류 기본 메시지
+:
+: 글로벌 오류 - ObjectError
+: public ObjectError(String objectName, String defaultMessage) {}
+: 특정 필드를 넘어서는 오류가 있으면 ObjectError 객체를 생성해서 bindingResult 에 담아두면 된다.
+: objectName : @ModelAttribute 의 이름
+: defaultMessage : 오류 기본 메시지

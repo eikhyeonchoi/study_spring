@@ -1,0 +1,44 @@
+메세지
+다양한 메세지를 한 곳에서 관리하도록 하는 기능
++ 언어지원까지 해주면 국제화
+
+
+
+메세지 소스 설정
+직접 등록
+@Bean
+public MessageSource messageSource() {
+    ResourceBundleMessageSource messageSource = new ResourceBundleMessageSource();
+    messageSource.setBasenames("messages", "errors");
+    messageSource.setDefaultEncoding("utf-8");
+    return messageSource;
+}
+
+스프링부트 등록
+application.properties
+spring.messages.basename=messages(default)
+messages_en.properties, messages_en.properties 등 파일만 등록하면 자동 인식됨
+
+
+
+사용법
+MessageSource ms;
+String getMessage(code, args, locale);s
+code: hello
+args: null
+locale: null
+
+없으면 exception
+assertThatThrownBy(() -> ms.getMessage("no_code", null, null)) .isInstanceOf(NoSuchMessageException.class);
+
+없으면 + 기본메세지 설정 시 exception 안터짐
+String result = ms.getMessage("no_code", null, "기본 메시지", null);
+
+배개변수 사용
+messages.properties -> hello.name = 안녕 {0}
+String result = ms.getMessage("hello.name", new Object[]{"Spring"}, null);
+
+국제화 파일 선택
+있으면 구체적인 것을 찾고, 없으면 default
+ex) Locale이 en_US 의 경우 messages_en_US messages_en messages 순서로 찾는다
+assertThat(ms.getMessage("hello", null, Locale.KOREA)).isEqualTo("안녕");

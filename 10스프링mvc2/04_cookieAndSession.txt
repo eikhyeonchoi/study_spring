@@ -1,0 +1,30 @@
+단순 쿠키로 하기엔 보안문제가 너무 큼
+
+
+
+세션 생성과 조회
+세션을 생성하려면 request.getSession(true) 를 사용하면 된다.
+public HttpSession getSession(boolean create);
+: create - true(default)
+: 있으면 기존세션 반환, 없으면 새로 생성
+: create - false
+: 있으면 기존세션 반환, 없으면 null return
+: 
+: HttpSession session = request.getSession();
+: 세션 제거 - session.invalidate();
+
+
+@SessionAttribute
+스프링은 세션을 더 편리하게 사용할 수 있도록 @SessionAttribute 을 지원한다
+public String homeLoginV3Spring (
+    @SessionAttribute(name = SessionConst.LOGIN_MEMBER, required = false) Member loginMember,
+    Model model) {
+
+}
+
+
+세션 타임아웃 설정
+글로벌 설정
+server.servlet.session.timeout=60 : 60초, 기본은 1800(30분)
+특정 세션 단위로 시간 설정
+session.setMaxInactiveInterval(1800); //1800초

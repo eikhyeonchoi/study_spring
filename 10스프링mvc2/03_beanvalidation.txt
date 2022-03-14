@@ -1,0 +1,8 @@
+implementation 'org.springframework.boot:spring-boot-starter-validation'
+스프링 부트가 spring-boot-starter-validation 라이브러리를 넣으면 자동으로 Bean Validator를 인지하고 스프링에 통합
+
+검증 
+https://docs.jboss.org/hibernate/validator/6.2/reference/en-US/html_single/#validator-defineconstraints-spec
+
+예를들어 저장, 수정이 있다고 가정하면
+BeanValidation을 사용하려면 form 2개를 만들어서 사용하는 것이 좋은 방법이다

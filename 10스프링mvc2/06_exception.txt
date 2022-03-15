@@ -1,0 +1,81 @@
+서블릿 예외처리
+
+2가지 방식으로 예외처리를 지원함
+1. exception
+2. response.sendError(code, message)
+
+@Component
+public class WebServerCustomizer implements WebServerFactoryCustomizer<ConfigurableWebServerFactory> {
+    @Override
+    public void customize(ConfigurableWebServerFactory factory) {
+        ErrorPage errorPage404 = new ErrorPage(HttpStatus.NOT_FOUND, "/errorpage/404");
+        ErrorPage errorPage500 = new ErrorPage(HttpStatus.INTERNAL_SERVER_ERROR, "/error-page/500");
+        ErrorPage errorPageEx = new ErrorPage(RuntimeException.class, "/errorpage/500");
+        factory.addErrorPages(errorPage404, errorPage500, errorPageEx);
+    }
+}
+: 스프링부트의 경우 자바코드로 예외처리를 할 수 있다
+
+오류 페이지 작동 원리
+WAS(여기까지 전파) <- 필터 <- 서블릿 <- 인터셉터 <- 컨트롤러(예외발생)
+-> response.sendError()도 마찬가지임
+WAS는 해당 예외를 처리하는 오류 페이지 정보를 확인한다.
+new ErrorPage(RuntimeException.class, "/error-page/500")
+
+예를 들어서 RuntimeException 예외가 WAS까지 전달되면, WAS는 오류 페이지 정보를 확인한다.
+확인해보니 RuntimeException 의 오류 페이지로 /error-page/500 이 지정되어 있다. 
+WAS는 오류 페이지를 출력하기 위해 /error-page/500 를 다시 요청한다
+
+요청 흐름 정리
+WAS(여기까지 전파) <- 필터 <- 서블릿 <- 인터셉터 <- 컨트롤러(예외발생)
+WAS `/error-page/500` 다시 요청 -> 필터 -> 서블릿 -> 인터셉터 -> 컨트롤러(/error-page/500) -> View
+
+-> 클라리언트는 서버 내부에서 이런 일이 일어나는지 전혀 모른다는 점
+-> 예외가 발생해서 WAS까지 전파
+-> WAS는 오류 페이지 경로를 찾아서 내부에서 오류 페이지를 호출한다. 이때 오류 페이지 경로로 필터, 서블릿, 인터셉터, 컨트롤러가 모두 다시 호출된다.
+
+
+
+필터
+다시 호출하는 것은 한번 더 호출하는 것을 의미 -> 비효율적이다
+서블릿은 이런 문제를 해결하기위해 클라이언트로 부터 발생한 정상 요청인지, 아니면 오류 페이지를 출력하기 위한 내부 요청인지 구분할 수 있게 해줌
+dispatcherType을 제공
+
+DispatcherType
+REQUEST : 클라이언트 요청
+ERROR : 오류 요청
+FORWARD : MVC에서 배웠던 서블릿에서 다른 서블릿이나 JSP를 호출할 때
+RequestDispatcher.forward(request, response);
+INCLUDE : 서블릿에서 다른 서블릿이나 JSP의 결과를 포함할 때
+RequestDispatcher.include(request, response);
+ASYNC : 서블릿 비동기 호출
+
+필터 등록할 때 setDispatcherType 메서드를 호출해서 구분할 수 있음
+기본값은 REQUEST
+
+
+
+인터셉터
+필터와 마찬가지로 2번 호출되면 비효율적이다
+인터셉터 등록할 때 excludePathPatterns에 에러페이지를 넣어준다
+
+
+
+
+스프링부트의 예외처리
+ErrorPage 를 자동으로 등록한다. 이때 /error 라는 경로로 기본 오류 페이지를 설정한다
+BasicErrorController 라는 스프링 컨트롤러를 자동으로 등록한다
+
+뷰 선택 우선순위
+BasicErrorController 의 처리 순서
+1. 뷰 템플릿
+    resources/templates/error/500.html
+    resources/templates/error/5xx.html
+2. 정적 리소스( static , public )
+    resources/static/error/400.html
+    resources/static/error/404.html
+    resources/static/error/4xx.html
+3. 적용 대상이 없을 때 뷰 이름( error )
+    resources/templates/error.html
+
+: 그냥 파일만 등록해주면 알아서 찾아감

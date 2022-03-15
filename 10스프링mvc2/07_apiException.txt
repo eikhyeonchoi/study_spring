@@ -1,0 +1,172 @@
+WebServerFactoryCustomizer에 직접 정의할 수 있지만
+스프링 부트는 BasicErrorController에 api 예외처리도 기본적으로 정의되어 있다
+Request Accept에 따라 다르게 응답을 준다
+
+errorHtml() 
+: produces = MediaType.TEXT_HTML_VALUE : 클라이언트 요청의 Accept 해더 값이
+: text/html 인 경우에는 errorHtml() 을 호출해서 view를 제공한다.
+
+error() 
+: 그외 경우에 호출되고 ResponseEntity 로 HTTP Body에 JSON 데이터를 반환한다.
+
+
+
+직접 구현
+HandlerExceptionResolver (등록해줘야함 - extendHandlerExceptionResolvers)
+: 예외가 발생해서 서블릿을 넘어 WAS까지 예외가 전달되면 HTTP 상태코드가 500으로 처리
+: 발생하는 예외에 따라서 400, 404 등등 다른 상태코드도 처리하고 싶다
+: 오류 메시지, 형식등을 API마다 다르게 처리하고 싶다
+: 스프링 MVC는 컨트롤러(핸들러) 밖으로 예외가 던져진 경우 예외를 해결하고, 동작을 새로 정의할 수 있는 방법을 제공
+: 컨트롤러 밖으로 던져진 예외를 해결하고, 동작 방식을 변경하고 싶으면 HandlerExceptionResolver 를 사용하면 된다. 줄여서 ExceptionResolver 라 한다.
+ex)
+public interface HandlerExceptionResolver {
+    ModelAndView resolveException(HttpServletRequest request, HttpServletResponse response, Object handler, Exception ex);
+}
+
+@Slf4j
+public class MyHandlerExceptionResolver implements HandlerExceptionResolver {
+    @Override
+    public ModelAndView resolveException(HttpServletRequest request, HttpServletResponse response, Object handler, Exception ex) {
+        try {
+            if (ex instanceof IllegalArgumentException) {
+                log.info("IllegalArgumentException resolver to 400");
+                response.sendError(HttpServletResponse.SC_BAD_REQUEST, ex.getMessage());
+                return new ModelAndView();
+            }
+        } catch (IOException e) {
+            log.error("resolver ex", e);
+        }
+        return null;
+    }
+}
+: ExceptionResolver 가 ModelAndView 를 반환하는 이유는 마치 try, catch를 하듯이, 
+: Exception 을 처리해서 정상 흐름 처럼 변경하는 것이 목적(exception을 잡아먹음) 
+: 이름 그대로 Exception 을 Resolver(해결)하는 것이 목적
+
+반환 값에 따른 동작 방식
+빈 ModelAndView - 뷰를 렌더링 하지않고, 정상 흐름으로 서블릿이 리턴
+ModelAndView 지정 - 뷰를 렌더링
+null - 다음 ExceptionResolver 를 찾아서 실행  만약 처리할 수 있는 ExceptionResolver 가 없으면 예외 처리가 안되고, 기존에 발생한 예외를 서블릿 밖으로 던짐(처리가 안됨)
+
+활용
+: 예외를 response.sendError(xxx) 호출로 변경해서 서블릿에서 상태 코드에 따른 오류를 처리하도록 위임
+: 이후 WAS는 서블릿 오류 페이지를 찾아서 내부 호출, 예를 들어서 스프링 부트가 기본으로 설정한 /error 가 호출됨
+
+정리
+: ExceptionResolver 를 사용하면 컨트롤러에서 예외가 발생해도 ExceptionResolver 에서 예외를 처리
+: 서블릿 컨테이너까지 예외가 전달되지 않고, 스프링 MVC에서 예외 처리는 끝남(결과적으로 WAS 입장에서는 정상 처리가 된 것)
+: 직접 구현하지말고 스프링에서 제공하는 ExceptionResolver를 사용하면 좋다
+
+
+
+
+
+스프링 ExceptionResolver
+
+ExceptionHandlerExceptionResolver
+: @ExceptionHandler 을 처리한다. API 예외 처리는 대부분 이 기능으로 해결
+
+
+ResponseStatusExceptionResolver
+: HTTP 상태 코드를 지정해준다.
+: 
+: 다음 두 가지 경우를 처리
+: @ResponseStatus 가 달려있는 예외
+: ResponseStatusException 예외
+: 원리는 동일함 ExceptionResolver로 에러를 먹어버리고 빈 ModelAndView를 반환함
+: 하지만 sendError를 하기때문에 WAS에서 다시 오류 페이지를 내부 요청함
+ex 1)
+@ResponseStatus(code = HttpStatus.BAD_REQUEST, reason = "잘못된 요청 오류")
+public class BadRequestException extends RuntimeException {
+}
++ reason 을 MessageSource 에서 찾는 기능도 제공한다. reason = "error.bad"
+
+ex 2)
+@GetMapping("/api/response-status-ex2")
+public String responseStatusEx2() {
+    throw new ResponseStatusException(HttpStatus.NOT_FOUND, "error.bad", new IllegalArgumentException());
+}
+
+
+DefaultHandlerExceptionResolver
+: 스프링 내부 기본 예외를 처리(스프링 내부에서 발생하는 스프링 예외를 해결)
+: 만약 바인딩 시점에 타입이 맞지 않을 경우 WAS까지 exception이 올라가 500에러가 발생함
+: 내부적으로 스프링이 처리해줌
+
+
+ExceptionHandlerExceptionResolver
+@ExceptionHandler
+
+ex 1)
+@ResponseStatus(HttpStatus.BAD_REQUEST)
+@ExceptionHandler(IllegalArgumentException.class)
+public ErrorResult illegalExHandle(IllegalArgumentException e) {
+    log.error("[exceptionHandle] ex", e);
+    return new ErrorResult("BAD", e.getMessage());
+}
+
+ex 2)
+@ExceptionHandler
+public ResponseEntity<ErrorResult> userExHandle(UserException e) {
+    log.error("[exceptionHandle] ex", e);
+    ErrorResult errorResult = new ErrorResult("USER-EX", e.getMessage());
+    return new ResponseEntity<>(errorResult, HttpStatus.BAD_REQUEST);
+}
+
+ex 3)
+@ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
+@ExceptionHandler
+public ErrorResult exHandle(Exception e) {
+    log.error("[exceptionHandle] ex", e);
+    return new ErrorResult("EX", "내부 오류");
+}
+
+실행흐름
+1. 컨트롤러를 호출한 결과 IllegalArgumentException 예외가 컨트롤러 밖으로 던져진다.
+2. 예외가 발생했으로 ExceptionResolver 가 작동한다. 가장 우선순위가 높은 ExceptionHandlerExceptionResolver 가 실행
+3. ExceptionHandlerExceptionResolver 는 해당 컨트롤러에 IllegalArgumentException 을 처리할 수 있는 @ExceptionHandler 가 있는지 확인
+4. illegalExHandle() 를 실행한다. @RestController 이므로 illegalExHandle() 에도 @ResponseBody 가 적용된다. 따라서 HTTP 컨버터가 사용되고, 응답이 다음과 같은 JSON으로 반환
+5. @ResponseStatus(HttpStatus.BAD_REQUEST) 를 지정했으므로 HTTP 상태 코드 400으로 응답
+
+
+
+@ControllerAdvice
+@RestControllerAdvice
+: 대상으로 지정한 여러 컨트롤러에 @ExceptionHandler , @InitBinder 기능을 부여해주는 역할을 함
+: @ControllerAdvice 에 대상을 지정하지 않으면 모든 컨트롤러에 적용된다.
+
+대상 컨트롤러 지정 방법
+// Target all Controllers annotated with @RestController
+@ControllerAdvice(annotations = RestController.class)
+public class ExampleAdvice1 {}
+
+// Target all Controllers within specific packages
+@ControllerAdvice("org.example.controllers")
+public class ExampleAdvice2 {}
+
+// Target all Controllers assignable to specific classes
+@ControllerAdvice(assignableTypes = {ControllerInterface.class, AbstractController.class})
+public class ExampleAdvice3 {}
+
+
+
+
+★★★
+★★★
+★★★
+정리
+컨트롤러에서 exception을 던지면 클라이언트의 Accept에 따라서
+BasicErrorController가 동작함 화면을 뿌려준다거나, json으로 던져준다거나
+결국 이 로직은
+WAS(여기까지 전파) <- 필터 <- 서블릿 <- 인터셉터 <- 컨트롤러(예외발생)
+WAS `/error-page/500` 다시 요청 -> 필터 -> 서블릿 -> 인터셉터 -> 컨트롤러(/error-page/500) -> View
+이런 비효율적인 로직을 타게됨
+
+따라서 이런 비효율을 없앨수 있고 + 클라리언트가 잘못했다면 400을 내려주는게 맞기 때문에 + 상태코드를 바꿀 수도 있음
+ExceptionResolver를 사용해야함, 물론 HandlerExceptionResolver을 상속받아 직접 구현을 할 수 도 있지만
+스프링에서 제공하는 ExceptionResolver를 쓰면 좋음
+@ExceptionHandler를 사용하게되면 예외가 발생하면 Resolver에서 예외를 잡아먹고 was에게는 정상응답을 주기 때문에
+다시 되돌아가는 로직이 없어 효율적이게 됨
+★★★
+★★★
+★★★

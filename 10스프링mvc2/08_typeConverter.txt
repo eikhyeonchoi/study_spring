@@ -1,0 +1,105 @@
+타입컨버터
+HTTP 쿼리 스트링으로 전달하는 데이터는 문자임
+@RequestParam을 사용하면 문자를 Integer로 편리하게 받을 수 있음
+스프링이 중간에서 타입을 변환해주었기 때문
+@PathVariable, @ModelAttribute도 마찬가지
+
+타입 컨버터를 사용하려면 org.springframework.core.convert.converter.Converter를 구현해야함
+public interface Converter<S, T> {
+    T convert(S source);
+}
+
+직접 하나하나 구현해서 불러서 쓰려면 너무 불편함
+
+
+
+컨버전 서비스 - ConversionService
+타입 컨버터를 하나하나 직접 찾아서 타입 변환에 사용하는 것은 매우 불편
+개별 컨버터를 모아두고 그것들을 묶어서 편리하게 사용할 수 있는 기능을 제공하는데, 이것이 바로 컨버전 서비스( ConversionService )
+
+인터페이스 분리 원칙 - ISP(Interface Segregation Principal)
+클라이언트가 자신이 이용하지 않는 메서드에 의존하지 않아야 한다
+DefaultConversionService 두 인터페이스를 구현
+1. ConversionService : 컨버터 사용에 초점
+2. ConverterRegistry : 컨버터 등록에 초점
+-> 이렇게 분리하게 되면 컨버터를 사용하는 클라이언트는 ConversionService만 의존하면 됨
+
+스프링은 내부에서 ConversionService 를 제공
+WebMvcConfigurer 가 제공하는 addFormatters() 를 사용해서 추가하고 싶은 컨버터를 등록하면 된다. 
+이렇게 하면 스프링은 내부에서 사용하는 ConversionService 에 컨버터를 추가해줌
+@Configuration
+public class WebConfig implements WebMvcConfigurer {
+    @Override
+    public void addFormatters(FormatterRegistry registry) {
+        registry.addConverter(new StringToIntegerConverter());
+        registry.addConverter(new IntegerToStringConverter());
+        registry.addConverter(new StringToIpPortConverter());
+        registry.addConverter(new IpPortToStringConverter());
+    }
+}
+
+사용할 땐 스프링이 내부에서 ConversionService를 제공함
+기본적으로 많은 컨버터들이 등록되어있음
+
+
+
+
+Formatter
+Converter vs Formatter
+Converter 는 범용(객체 객체)
+Formatter 는 문자에 특화(객체 문자, 문자 객체) + 현지화(Locale) Converter 의 특별한 버전
+
+public interface Printer<T> {
+    String print(T object, Locale locale); // 객체를 문자로 변경한다.
+}
+
+public interface Parser<T> {
+    T parse(String text, Locale locale) throws ParseException; // 문자를 객체로 변경한다.
+}
+
+public interface Formatter<T> extends Printer<T>, Parser<T> {
+}
+
+ex)
+public class MyNumberFormatter implements Formatter<Number> {
+    @Override
+    public Number parse(String text, Locale locale) throws ParseException {
+        log.info("text={}, locale={}", text, locale);
+        NumberFormat format = NumberFormat.getInstance(locale);
+        return format.parse(text);
+    }
+
+    @Override
+    public String print(Number object, Locale locale) {
+        log.info("object={}, locale={}", object, locale);
+        return NumberFormat.getInstance(locale).format(object);
+    }
+}
+
+등록하는건 converter등록하는 것과 동일하게 등록하면 됨
+
+
+
+기본으로 제공하는 포매터
+@NumberFormat : 숫자 관련 형식 지정 포맷터 사용, NumberFormatAnnotationFormatterFactory
+@DateTimeFormat : 날짜 관련 형식 지정 포맷터 사용,Jsr310DateTimeFormatAnnotationFormatterFactory
+ex)
+static class Form {
+    @NumberFormat(pattern = "###,###")
+    private Integer number;
+
+    @DateTimeFormat(pattern = "yyyy-MM-dd HH:mm:ss")
+    private LocalDateTime localDateTime;
+}
+
+
+
+주의
+메시지 컨버터( HttpMessageConverter )에는 컨버전 서비스가 적용되지 않는다.
+특히 객체를 JSON으로 변환할 때 메시지 컨버터를 사용하면서 이 부분을 많이 오해하는데,
+HttpMessageConverter 의 역할은 HTTP 메시지 바디의 내용을 객체로 변환하거나 객체를 HTTP 메시지 바디에 입력하는 것이다. 
+예를 들어서 JSON을 객체로 변환하는 메시지 컨버터는 내부에서 Jackson 같은 라이브러리를 사용한다. 
+객체를 JSON으로 변환한다면 그 결과는 이 라이브러리에 달린 것이다. 
+따라서 JSON 결과로 만들어지는 숫자나 날짜 포맷을 변경하고 싶으면 해당 라이브러리가 제공하는 설정을 통해서 포맷을 지정해야 한다. 
+결과적으로 이것은 컨버전 서비스와 전혀 관계가 없다.
+컨버전 서비스는 @RequestParam , @ModelAttribute , @PathVariable , 뷰 템플릿 등에서 사용할 수 있다

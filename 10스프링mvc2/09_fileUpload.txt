@@ -1,0 +1,42 @@
+Content-Type: application/x-www-form-urlencoded
+파일 업로드 안됨
+
+multipart/form-data 방식은 다른 종류의 여러 파일과 폼의 내용 함께 전송할 수 있다
+폼의 입력 결과로 생성된 HTTP 메시지를 보면 각각의 전송 항목이 구분이 되어있다. 
+ContentDisposition 이라는 항목별 헤더가 추가되어 있고 여기에 부가 정보가 있다
+multipart/form-data 는 이렇게 각각의 항목을 구분해서, 한번에 전송하는 것
+
+
+
+
+
+MultipartFile
+file.getOriginalFilename() : 업로드 파일 명
+file.transferTo(...) : 파일 저장
+...
+
+// 이미지보기 및 다운로드 샘플코드 
+@ResponseBody
+    @GetMapping("/images/{filename}")
+    public Resource downloadImage(@PathVariable String filename) throws MalformedURLException {
+        return new UrlResource("file:" + fileStore.getFullPath(filename));
+    }
+
+    @GetMapping("/attach/{itemId}")
+    public ResponseEntity<Resource> downloadAttach(@PathVariable Long itemId) throws MalformedURLException {
+        Item item = itemRepository.findById(itemId);
+        String storeFileName = item.getAttachFile().getStoreFileName();
+        String uploadFileName = item.getAttachFile().getUploadFileName();
+
+        UrlResource resource = new UrlResource("file:" + fileStore.getFullPath(storeFileName));
+
+        log.info("uploadFileName={}", uploadFileName);
+
+        String encodedUploadFileName = UriUtils.encode(uploadFileName, StandardCharsets.UTF_8);
+        String contentDisposition = "attachment; filename=\"" + encodedUploadFileName + "\"";
+
+        return ResponseEntity.ok()
+                .header(HttpHeaders.CONTENT_DISPOSITION, contentDisposition)
+                .body(resource);
+    }
+}

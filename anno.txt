@@ -298,3 +298,12 @@ spring mvc
 @WebServlet(name = "helloServlet", urlPatterns = "/hello") - 서블릿 애노테이션
 : name: 서블릿 이름
 : urlPatterns: URL 매핑
+
+
+@ControllerAdvice
+@RestControllerAdvice
+: 대상으로 지정한 여러 컨트롤러에 @ExceptionHandler , @InitBinder 기능을 부여해주는 역할을 함
+: @ControllerAdvice 에 대상을 지정하지 않으면 모든 컨트롤러에 적용된다.
+
+
+@ExceptionHandler

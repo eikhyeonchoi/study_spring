@@ -14,7 +14,7 @@ form-data 415
 json 가능
 
 dependencies
-commons-fileupload(apache) 넣고
+commons-fileupload(apache) 넣고(안넣어도되는 듯)
 @ModelAttribute or 아무 어노테이션 쓰지 않고 객체로 받을 수 있음
 어노테이션을 생략한다? -> ModelAttribute로 인식함
 

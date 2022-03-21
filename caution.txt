@@ -1,0 +1,10 @@
+querydsl cannot find symbol
+Help > Find Action > Reload All Gradle Projects
+
+
+
+@GeneratedValue(strategy = GenerationType.IDENTITY)
+strategy 지정하지 않으면
+모든 테이블 PK가 공유됨?? -> 같이올라감
+A table -> 1,2,3
+B table -> 4,5,6 ...

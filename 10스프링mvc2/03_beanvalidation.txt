@@ -6,3 +6,76 @@ https://docs.jboss.org/hibernate/validator/6.2/reference/en-US/html_single/#vali
 
 예를들어 저장, 수정이 있다고 가정하면
 BeanValidation을 사용하려면 form 2개를 만들어서 사용하는 것이 좋은 방법이다
+
+
+
+field error
+global error
+구분해서 할 것
+
+
+
+
+종류 간단정리
+@AssertTrue
+    Checks that the annotated element is true
+
+@AssertFalse
+    Checks that the annotated element is false    
+
+@Email
+
+@Future
+    Checks whether the annotated date is in the future
+
+@FutureOrPresent
+    Checks whether the annotated date is in the present or in the future
+
+@Past
+    Checks whether the annotated date is in the past
+
+@PastOrPresent
+    Checks whether the annotated date is in the past or in the present
+
+@Max(value=)
+    Checks whether the annotated value is less than or equal to the specified maximum
+
+@Min(value=)
+    Checks whether the annotated value is higher than or equal to the specified minimum
+
+@NotBlank
+    Checks that the annotated character sequence is not null and the trimmed length is greater than 0
+
+@NotEmpty
+    Checks whether the annotated element is not null nor empty
+    공백 체크 못함, 컬렉션에 사용하면 될듯
+
+@NotNull
+    Checks that the annotated value is not null
+
+@Null
+    Checks that the annotated value is null
+
+@Pattern(regex=, flags=)
+    Checks if the annotated string matches the regular expression regex considering the given flag match
+
+@Positive
+    Checks if the element is strictly positive. Zero values are considered invalid.
+
+@PositiveOrZero
+    Checks if the element is positive or zero.  
+
+@Size(min=, max=)
+    Checks if the annotated element’s size is between min and max (inclusive)
+
+@Currency(value=)
+    Checks that the currency unit of the annotated javax.money.MonetaryAmount is part of the specified currency units.
+
+@ISBN
+    Checks that the annotated character sequence is a valid ISBN
+
+@Length(min=, max=)
+    Validates that the annotated character sequence is between min and max included 
+
+@Range(min=, max=)
+    Checks whether the annotated value lies between (inclusive) the specified minimum and maximum

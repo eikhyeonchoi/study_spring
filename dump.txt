@@ -20,16 +20,12 @@ where
 
 
     {"originName":"1.png","newName":"71ea11cd-5d99-467c-ad6f-499e9d722ade..png","ext":".png","storePath":"C:/Users/eikhy/Desktop/dev_doc/testFileDir/","contentType":"image/png","size":1792149}
-
-
-
-
-
 {
     "status": 200,
     "message": "",
     "data": {
-        "accessToken": "eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJhY2Nlc3NUb2tlbiIsImlkIjoxLCJleHAiOjE2NDgxMjkyNjN9.IBblcy7RlQs7cMenhhiD3116BlwK8tepEQzDwqeEttc",
-        "refreshToken": "eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJyZWZyZXNoVG9rZW4iLCJpZCI6MSwiZXhwIjoxNjQ4NzIzMjYzfQ.SPS3pHQI0SXd9RiDlSD6MjsADj9L6dzPPQrArCDhzp0"
+        "accessToken": "eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJhY2Nlc3NUb2tlbiIsImlkIjoxLCJ0b2tlblR5cGUiOiJhY2Nlc3MiLCJleHAiOjE2NDgyOTYyOTF9.45fR_9MqXTeFy48BPagw97QvS-dK6S4J52WFaZhJDZ4",
+        "refreshToken": "eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJyZWZyZXNoVG9rZW4iLCJpZCI6MSwidG9rZW5UeXBlIjoicmVmcmVzaCIsImV4cCI6MTY0ODg5MDI5MX0.jcj1mrxzfo1SaQG9F72jni_IsZQCuqkXX1uqKGF7gos"
     },
     "errors": null
+}

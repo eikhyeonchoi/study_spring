@@ -45,10 +45,11 @@ global error
 
 @NotBlank
     Checks that the annotated character sequence is not null and the trimmed length is greater than 0
+    String에 사용
 
 @NotEmpty
     Checks whether the annotated element is not null nor empty
-    공백 체크 못함, 컬렉션에 사용하면 될듯
+    공백 체크 못함, 컬렉션에 사용하면 될듯 String에 사용
 
 @NotNull
     Checks that the annotated value is not null

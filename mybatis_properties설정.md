@@ -4,11 +4,11 @@ spring.datasource.username=root
 spring.datasource.password=admin
 spring.datasource.driver-class-name:com.mysql.cj.jdbc.Driver
 
-spring.mvc.view.prefix=/WEB-INF/views/
+spring.mvc.view.prefix=/WEB-INF/jsp/ # 상위경로 - src/main/webapp/ 
 spring.mvc.view.suffix=.jsp
 
 mybatis.mapper-locations=classpath:mybatis/mapper/**/**.xml
-mybatis.type-aliases-package=com.example.demo.entity
+mybatis.type-aliases-package=com.example.demo.entity # 패키지 잘 확인
 ```
 ```
 dependencies {

@@ -15,16 +15,7 @@ mybatis.type-aliases-package=com.example.demo.entity
 
 ```
 dependencies {
-	implementation 'org.springframework.boot:spring-boot-starter-jdbc'
-	implementation 'org.springframework.boot:spring-boot-starter-web'
-	implementation 'org.mybatis.spring.boot:mybatis-spring-boot-starter:2.3.0'
-	compileOnly 'org.projectlombok:lombok'
-	annotationProcessor 'org.projectlombok:lombok'
-	testImplementation 'org.springframework.boot:spring-boot-starter-test'
-	
-	// https://mvnrepository.com/artifact/com.mysql/mysql-connector-j
-	implementation group: 'com.mysql', name: 'mysql-connector-j', version: '8.0.32'
-	
+	// spring boot에서 jsp 사용 시 추가해야함
 	implementation 'javax.servlet:jstl'
     implementation "org.apache.tomcat.embed:tomcat-embed-jasper"
 }
@@ -68,10 +59,26 @@ https://itprogramming119.tistory.com/entry/Spring-Boot-Mybatis-Oracle-%EC%97%B0%
 	<!-- Root Context: defines shared resources visible to all other web components -->
 	<bean id="dataSource" class="org.springframework.jdbc.datasource.DriverManagerDataSource">
 		<property name="driverClassName" value="com.mysql.cj.jdbc.Driver"/>
-		<property name="url" value="jdbc:mysql://localhost:3306/testdb"/>
-		<property name="username" value="root"/>
-		<property name="password" value="admin"/>
+		<property name="url" value="jdbc:mysql://localhost:3306/dbname"/>
+		<property name="username" value=""/>
+		<property name="password" value=""/>
 	</bean>
+
+	<!-- oracle database 인 경우, repository는 pom.xml에 추가해야함 -->
+	<repositories>
+		<repository>
+			<id>oracle</id>
+			<name>Oracle JDBC Repository</name>
+			<url>http://repo.spring.io/plugins-release/</url>
+		</repository>
+	</repositories>
+	<bean id="dataSource" class="org.springframework.jdbc.datasource.DriverManagerDataSource" lazy-init="false">
+		<property name="driverClassName" value="oracle.jdbc.driver.OracleDriver" />
+		<property name="url" value="jdbc:oracle:thin:@localhost:1521:xe" />
+		<property name="username" value="" />
+		<property name="password" value=""/>
+	</bean>   
+
 	
 	<bean id="sqlSessionFactory" class="org.mybatis.spring.SqlSessionFactoryBean">
 		<property name="dataSource" ref="dataSource"></property>

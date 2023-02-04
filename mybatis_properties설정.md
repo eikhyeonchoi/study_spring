@@ -1,4 +1,8 @@
 ```
+mybatis transaction 처리 : https://codevang.tistory.com/264
+```
+
+```
 spring.datasource.url=jdbc:mysql://localhost:3306/testdb
 spring.datasource.username=root
 spring.datasource.password=admin
@@ -93,6 +97,12 @@ https://itprogramming119.tistory.com/entry/Spring-Boot-Mybatis-Oracle-%EC%97%B0%
 
 	<!-- root-context.xml -> open with -> spring config editor 로 열어야 이거 가능함 -->
 	<mybatis-spring:scan base-package="com.exam.demo.repo"/>
+
+	<bean id="transactionManager"
+		class="org.springframework.jdbc.datasource.DataSourceTransactionManager">
+		<property name="dataSource" ref="dataSource" />
+	</bean>
+	<tx:annotation-driven transaction-manager="transactionManager" />	
 </beans>
 ```
 
@@ -101,7 +111,7 @@ https://itprogramming119.tistory.com/entry/Spring-Boot-Mybatis-Oracle-%EC%97%B0%
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE configuration PUBLIC "//mybatis.org//DTD Config 3.0//EN" "http://mybatis.org/dtd/mybatis-3-config.dtd" >
 <configuration>
-	<typeAliases>
+<typeAliases>
 		<typeAlias type="com.exam.demo.entity.Member" alias="Member"/>
 	</typeAliases>
 </configuration>

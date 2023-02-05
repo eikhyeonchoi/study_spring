@@ -26,6 +26,7 @@ dependencies {
 ```
 ```
 oracle일시 연결방법
+https://po9357.github.io/spring/2019-05-12-MyBatis_Oracle/
 https://itprogramming119.tistory.com/entry/Spring-Boot-Mybatis-Oracle-%EC%97%B0%EB%8F%99%ED%95%98%EB%8A%94-%EB%B0%A9%EB%B2%95
 ```
 

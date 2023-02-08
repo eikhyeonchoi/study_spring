@@ -1,7 +1,5 @@
-:::annotation 정리:::
-
-ㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡ
-
+# Annotations
+```
 컴포넌트 스캔과 자동 의존관계 설정
 
 @ComponentScan
@@ -12,13 +10,11 @@
 : 스프링부트로 시작한다면 @SpringBootApplication에 @ComponentScan이 붙어있다
 : 스캔 범위를 직접 지정할 수 있으며, 기본은 이 어노테이션이 붙은 패키지이다 -> 보통 최상단에 두는 것이 관례
 
-
 @Controller - Controller, class 에서 사용
 @Service - Service, class 에서 사용
 @Repository - Repository, class 에서 사용
 : 스프링컨테이너에 객체를 만들어 넣는다
 : 컴포넌트 스캔 방법임 -> 사실 다 @Component임 scope은 패키지임 메인패키지 하위만 스캔
-
 
 @Autowried - Controller, constructor 에서 사용
 : 스프링컨테이너에 있는 객체를 알아서 연결시켜줌 
@@ -35,9 +31,9 @@
 @Primary
 : 동일한 타입의 스프링 빈이 여러 있다면 이 어노테이션이 붙은 빈이 우선순위가 높다
 : 주입되는 빈에만 적어줘도 된다 
+```
 
-ㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡ
-
+```
 자바 코드로 직접 스프링 빈 등록하기
 
 @Configuration - class에서 사용
@@ -64,9 +60,9 @@
 
 ※ 스프링 빈 생명주기
 컨테이너 생성 => 빈 등록 -> 의존성 주입 -> @PostConstruct -> 사용 -> @PreDestroy -> 소멸
+```
 
-ㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡ
-
+```
 :: 파라미터로 받을 수 있는 항목들 :: 
 https://docs.spring.io/spring-framework/docs/current/reference/html/web.html#mvc-ann-arguments
 @RequestParam
@@ -80,13 +76,14 @@ Locale locale,
 @RequestHeader MultiValueMap<String, String> headerMap,
 @RequestHeader("host") String host,
 @CookieValue(value = "myCookie", required = false) String cookie
+```
 
+```
 :: 리턴타입 :: 
 https://docs.spring.io/spring-framework/docs/current/reference/html/web.html#mvc-annreturn-types
+```
 
-
-
-
+```
 @GetMapping
 @PostMapping
 @PutMapping
@@ -130,9 +127,9 @@ https://docs.spring.io/spring-framework/docs/current/reference/html/web.html#mvc
 @SpringBootTest - 스프링 컨테이너와 테스트를 함께 실행
 @Transactional - 테스트 완료 후 DB rollback을 한다(테스트 반복을 위해) 테스트 case에 붙었을때만 rollback
 : 테스트 할 때 사용할 anno(@Transactional은 다른곳에서도 사용한다)
+```
 
-ㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡ
-
+```
 JPA
 
 @Entity - domain, class에 사용
@@ -254,9 +251,9 @@ em.merge(Object) - update
 
 @MappedSuperclass
 : 공통 매핑 정보가 필요할 때 사용(create_dt, update_dt 등)
+```
 
-ㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡ
-
+```
 spring data JPA
 
 @Query(value = "", nativeQuery = boolean)
@@ -279,16 +276,16 @@ spring data JPA
 : 생성일
 @LastModifiedBy
 : 수정일
+```
 
-ㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡ
-
+```
 Querydsl
 
 @QueryProjection - 클래스->생성자에 사용
 : DTO까지 Qtype으로 관리함
+```
 
-ㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡ
-
+```
 spring mvc
 
 @ServletComponentScan - 서블릿 어플리케이션에 명세
@@ -299,11 +296,10 @@ spring mvc
 : name: 서블릿 이름
 : urlPatterns: URL 매핑
 
-
 @ControllerAdvice
 @RestControllerAdvice
 : 대상으로 지정한 여러 컨트롤러에 @ExceptionHandler , @InitBinder 기능을 부여해주는 역할을 함
 : @ControllerAdvice 에 대상을 지정하지 않으면 모든 컨트롤러에 적용된다.
 
-
 @ExceptionHandler
+```

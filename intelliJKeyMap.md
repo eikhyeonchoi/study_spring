@@ -1,3 +1,5 @@
+# intelliJ keyMap
+```
 alt + insert = getter/setter 알아서 만들어줌
 shift + f6 = 변수 이름 한번에 바꿔줌
 f2 = 에러로 이동
@@ -19,3 +21,4 @@ alt + shift + p = 패키지생성(custom)
 alt + shift + n = 파일생성(custom)
 
 lombok 사용시 settings -> annotation process check!
+```

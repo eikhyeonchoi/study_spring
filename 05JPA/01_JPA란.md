@@ -1,5 +1,7 @@
-ㅡSQL 중심적인 개발의 문제점
+# JPA 기본
 
+## SQL 중심적인 개발의 문제점
+```
 객체를 관계형DB에 저장
 SQL 중심적인 개발
 반복이 잦다
@@ -22,12 +24,13 @@ Mybatis, JDBC등을 사용하는 경우엔
 Member member1 = memberDAO.getMember(mebmerId);
 Member member2 = memberDAO.getMember(mebmerId);
 member1 != member // true
+```
 
-
-
-ㅡ JPA
+## JPA
+```
 애플리케이션과 JDBC 사이에서 동작함
 표준명세 -인터페이스의 모음
+JPA는 인터페이스고 이를 구현한게 Hibernate임
 
 기본 사용법 예제
 public static void main(String[] args) {
@@ -70,4 +73,10 @@ public static void main(String[] args) {
         emf.close();
     }
 }
+```
 
+## JPQL
+```
+ JPA는 SQL을 추상화한 JPQL이라는 객체 지향 쿼리 언어 제공
+ JPQL은 엔티티 객체를 대상으로 쿼리
+```

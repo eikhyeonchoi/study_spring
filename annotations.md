@@ -218,9 +218,10 @@ class Parent {
 : 꼭 EnumType을 String으로 설정해야줘야함
 
 
-@PersistenceContext
+@PersistenceContext - 권장
 EntityManager em;
 : jpa의 entity manager를 주입받을 수 있다
+: @Autowired보다 thread safe 하다 
 em.persist(Object) - insert
 em.find(Class, id) - 단건조회PK
 em.createQuery(query, Class) - 쿼리

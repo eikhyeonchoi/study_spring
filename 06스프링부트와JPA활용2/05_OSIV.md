@@ -1,4 +1,5 @@
-Open Session In View
+# Open Session In View
+```
 spring.jpa.open-in-view : true 기본값
 
 ON
@@ -14,3 +15,4 @@ OFF
 모든 지연로딩을 트랜잭션 안에서 처리해야 한다. 따라서 지금까지 작성한 많은 지연 로딩 코드를 트랜잭션 안으로 넣어야 하는 단점이 있다.
 
 고객 서비스의 실시간 API는 OSIV를 끄고, ADMIN 처럼 커넥션을 많이 사용하지 않는 곳에서는 OSIV를 켠다
+```

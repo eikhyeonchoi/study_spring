@@ -1,3 +1,0 @@
-interface를 만들고 JpaRepository를 상속받으면
-spring data jpa가 interface 구현클래스를 생성해줌(Proxy 기술)
-@Repository 어노테이션을 생략가능

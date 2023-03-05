@@ -82,8 +82,8 @@
 
 ## 상속관계를 매핑할때
 ```
-: @DiscriminatorColumn(name=“DTYPE”) 
-: @DiscriminatorValue(“XXX”)
+: @DiscriminatorColumn(name="DTYPE") 
+: @DiscriminatorValue("XXX")
 : 꼭 넣어주자
 ```
 

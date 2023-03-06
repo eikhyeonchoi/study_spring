@@ -5,4 +5,3 @@
 -> default값 설정할 수 있음
 -> insert, update될 때 null인거 제외하고 query 실행
 -> 고로 default 설정할 수 있다
-
